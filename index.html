@@ -38,8 +38,7 @@
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       margin: 0;
       padding: 0;
     }
@@ -111,15 +110,9 @@
     }
 
     @keyframes brandGlow {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .logo {
@@ -171,8 +164,8 @@
 
     .neon-card {
       background: radial-gradient(circle at 0 0, rgba(57, 255, 221, 0.06) 0, transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(255, 107, 203, 0.06) 0, transparent 55%),
-        rgba(8, 12, 32, 0.96);
+                  radial-gradient(circle at 100% 0, rgba(255, 107, 203, 0.06) 0, transparent 55%),
+                  rgba(8, 12, 32, 0.96);
       border-radius: 18px;
       border: 1px solid rgba(105, 122, 255, 0.35);
       box-shadow:
@@ -236,7 +229,7 @@
 
     .btn-primary {
       background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.24) 0, transparent 40%),
-        linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 100%);
+                  linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 100%);
       color: #050814;
       font-weight: 600;
       box-shadow:
@@ -315,7 +308,7 @@
 
     .post-header h3 {
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.0rem;
     }
 
     .post-date {
@@ -330,25 +323,16 @@
       color: var(--text);
     }
 
+    .post-owner,
     .post-contact {
       margin: 0 0 4px;
       font-size: 0.85rem;
       color: var(--muted);
     }
 
+    .post-owner span,
     .post-contact span {
       color: var(--accent);
-      font-weight: 500;
-    }
-
-    .post-author {
-      margin: 0 0 4px;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .post-author span {
-      color: var(--accent-alt);
       font-weight: 500;
     }
 
@@ -999,6 +983,21 @@
       </div>
       <form id="post-form" class="form">
         <div class="field">
+          <label for="owner-name">Il tuo nome (verrà mostrato nel post) *</label>
+          <input
+            type="text"
+            id="owner-name"
+            maxlength="50"
+            required
+            placeholder="Es. Alessandro"
+          />
+          <div class="field-hint">
+            Serve per far sapere chi ha creato l'incontro.
+          </div>
+          <div class="field-error"></div>
+        </div>
+
+        <div class="field">
           <label for="location">Posizione (descrizione luogo) *</label>
           <input
             type="text"
@@ -1049,18 +1048,6 @@
         </div>
 
         <div class="field">
-          <label for="creator-name">Il tuo nome (sarà visibile nel post) *</label>
-          <input
-            type="text"
-            id="creator-name"
-            maxlength="60"
-            required
-            placeholder="Es. Alex in camper"
-          />
-          <div class="field-error"></div>
-        </div>
-
-        <div class="field">
           <label for="contact">Contatto (mail o telefono) *</label>
           <input
             type="text"
@@ -1085,7 +1072,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Salva incontro</button>
+          <button type="submit" class="btn btn-primary">Pubblica incontro</button>
         </div>
       </form>
     </div>
@@ -1131,8 +1118,7 @@
       const postsContainer = document.getElementById("posts");
       const postModal = document.getElementById("post-modal");
       const postForm = document.getElementById("post-form");
-      const openPostBtn = document.getElementById("open-post-modal");
-      const closePostBtn = document.getElementById("close-post-modal");
+      const ownerNameInput = document.getElementById("owner-name");
       const locationInput = document.getElementById("location");
       const contactInput = document.getElementById("contact");
       const descInput = document.getElementById("description");
@@ -1141,7 +1127,8 @@
       const addressInput = document.getElementById("address-search");
       const addressSearchBtn = document.getElementById("address-search-btn");
       const addressErrorEl = document.getElementById("address-error");
-      const creatorNameInput = document.getElementById("creator-name");
+      const openPostBtn = document.getElementById("open-post-modal");
+      const closePostBtn = document.getElementById("close-post-modal");
 
       // DOM Radar (chat generale)
       const radarToggle = document.getElementById("radar-toggle");
@@ -1270,7 +1257,7 @@
           const { data, error } = await sb
             .from("encounters")
             .select(
-              "id, location_text, lat, lng, meeting_date, contact, description, owner_id, creator_name, created_at, encounter_comments(id, author_name, text, created_at)"
+              "id, owner_name, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
             )
             .order("meeting_date", { ascending: true });
 
@@ -1284,29 +1271,22 @@
           let rows = data || [];
           rows = cleanupExpiredRows(rows);
 
-          postsCache = rows.map((row) => {
-            const locText = row.location_text && row.location_text.trim();
-            const descText = row.description && row.description.trim();
-            const titleLocation =
-              locText || descText || "Luogo non specificato";
-
-            return {
-              id: String(row.id),
-              location: titleLocation,
-              lat: row.lat,
-              lng: row.lng,
-              meetingDate: row.meeting_date,
-              contact: row.contact,
-              description: row.description,
-              ownerId: row.owner_id,
-              creatorName: row.creator_name,
-              comments: (row.encounter_comments || []).sort((a, b) => {
-                const da = new Date(a.created_at);
-                const db = new Date(b.created_at);
-                return da - db;
-              }),
-            };
-          });
+          postsCache = rows.map((row) => ({
+            id: String(row.id),
+            ownerName: row.owner_name,
+            location: row.location_text,
+            lat: row.lat,
+            lng: row.lng,
+            meetingDate: row.meeting_date,
+            contact: row.contact,
+            description: row.description,
+            ownerId: row.owner_id,
+            comments: (row.encounter_comments || []).sort((a, b) => {
+              const da = new Date(a.created_at);
+              const db = new Date(b.created_at);
+              return da - db;
+            }),
+          }));
 
           renderPosts();
         } catch (err) {
@@ -1356,11 +1336,11 @@
             '<p class="post-desc">' +
             escapeHtml(post.description) +
             "</p>" +
+            '<p class="post-owner">Creato da: <span>' +
+            escapeHtml(post.ownerName || "Anonimo") +
+            "</span></p>" +
             '<p class="post-contact">Contatto: <span>' +
             escapeHtml(post.contact) +
-            "</span></p>" +
-            '<p class="post-author">Creato da: <span>' +
-            escapeHtml(post.creatorName || "Camperista") +
             "</span></p>" +
             '<div class="post-actions">' +
             (post.ownerId === currentUserId
@@ -1534,18 +1514,23 @@
         delete postForm.dataset.editingId;
         selectedLatLng = null;
 
+        // Precompila il nome con quello del radar se presente (nuovo)
+        const radarName = (radarNameInput.value || "").trim();
+        if (radarName) {
+          ownerNameInput.value = radarName;
+        }
+
         if (editPost) {
+          ownerNameInput.value = editPost.ownerName || radarName || "";
           locationInput.value = editPost.location || "";
           contactInput.value = editPost.contact || "";
           descInput.value = editPost.description || "";
           dateInput.value = editPost.meetingDate || "";
           addressInput.value = editPost.location || "";
-          creatorNameInput.value = editPost.creatorName || "";
           postForm.dataset.editingId = editPost.id;
         } else {
           dateInput.value = "";
           addressInput.value = "";
-          creatorNameInput.value = "";
         }
 
         postModal.classList.add("open");
@@ -1588,24 +1573,24 @@
         e.preventDefault();
         clearFormErrors();
 
+        const ownerNameVal = ownerNameInput.value.trim();
         const locVal = locationInput.value.trim();
         const contactVal = contactInput.value.trim();
         const descVal = descInput.value.trim();
         const dateVal = dateInput.value;
-        const creatorNameVal = creatorNameInput.value.trim();
 
         let valid = true;
 
+        if (!ownerNameVal) {
+          showError(ownerNameInput, "Campo obbligatorio");
+          valid = false;
+        }
         if (!locVal) {
           showError(locationInput, "Campo obbligatorio");
           valid = false;
         }
         if (!contactVal) {
           showError(contactInput, "Campo obbligatorio");
-          valid = false;
-        }
-        if (!creatorNameVal) {
-          showError(creatorNameInput, "Campo obbligatorio");
           valid = false;
         }
         if (!dateVal) {
@@ -1629,13 +1614,13 @@
 
         const payload = {
           owner_id: currentUserId,
+          owner_name: ownerNameVal,
           location_text: locVal,
           contact: contactVal,
           description: descVal,
           meeting_date: dateVal,
           lat: selectedLatLng ? selectedLatLng.lat : null,
           lng: selectedLatLng ? selectedLatLng.lng : null,
-          creator_name: creatorNameVal,
         };
 
         const editingId = postForm.dataset.editingId;
@@ -1902,7 +1887,6 @@
         activeDmDisplayName = null;
       });
 
-      // DM SUBMIT: mostra il messaggio SUBITO
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const text = (dmInput.value || "").trim();
@@ -2038,10 +2022,7 @@
             (payload) => {
               const row = payload.new || payload.old;
               if (!row) return;
-              if (
-                payload.eventType === "INSERT" ||
-                payload.eventType === "UPDATE"
-              ) {
+              if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
                 radarUsersById[row.id] = row;
               } else if (payload.eventType === "DELETE") {
                 delete radarUsersById[row.id];
@@ -2088,7 +2069,7 @@
           .subscribe();
       }
 
-      // BACHECA REALTIME
+      // *** BACHECA REALTIME ***
       function subscribeBachecaRealtime() {
         sb
           .channel("camperbuddy-bacheca-channel")
@@ -2274,4 +2255,3 @@
   </script>
 </body>
 </html>
-
