@@ -686,8 +686,8 @@
       margin-top: 2px;
     }
 
-    /* DM (chat privata + lista contatti) */
-    .dm-window {
+    /* DM (chat privata con elenco contatti) */
+    .dm-panel {
       margin-top: 8px;
       border-radius: 14px;
       border: 1px solid rgba(255, 107, 203, 0.6);
@@ -698,100 +698,128 @@
         0 0 28px rgba(57, 255, 221, 0.4);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
-    .dm-header {
+    .dm-panel-header h3 {
+      margin: 0 0 2px;
+      font-size: 0.95rem;
+      color: var(--accent-alt);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .dm-layout {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.9rem;
-      color: var(--accent);
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .dm-header span {
-      font-weight: 600;
-    }
-
-    .dm-body {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .dm-list {
+    .dm-contacts {
+      flex: 0 0 40%;
+      min-width: 160px;
+      max-width: 220px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 107, 203, 0.4);
+      border: 1px solid rgba(105, 122, 255, 0.5);
+      background: rgba(6, 8, 30, 0.98);
       padding: 6px;
-      max-height: 140px;
-      overflow-y: auto;
-      font-size: 0.8rem;
-    }
-
-    .dm-list::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .dm-list::-webkit-scrollbar-thumb {
-      background: var(--accent-alt);
-      border-radius: 999px;
-    }
-
-    .dm-list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 8px;
-      margin-bottom: 4px;
-      border-radius: 999px;
-      cursor: pointer;
-      background: rgba(16, 12, 48, 0.9);
-      border: 1px solid transparent;
-      transition: background 0.15s ease-out, border-color 0.15s ease-out,
-        box-shadow 0.15s ease-out;
-    }
-
-    .dm-list-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .dm-list-item:hover {
-      background: rgba(24, 18, 64, 0.95);
-      border-color: rgba(255, 107, 203, 0.7);
-    }
-
-    .dm-list-item.unread {
-      border-color: rgba(255, 107, 203, 0.9);
-      box-shadow: 0 0 8px rgba(255, 107, 203, 0.7);
-    }
-
-    .dm-list-name {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .dm-list-badge {
-      background: var(--accent-alt);
-      color: #050814;
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      border-radius: 999px;
-      min-width: 18px;
-      text-align: center;
-      margin-left: 6px;
     }
 
     .dm-conversation {
+      flex: 1;
+      min-width: 0;
       border-radius: 10px;
-      border: 1px solid rgba(57, 255, 221, 0.4);
+      border: 1px solid rgba(105, 122, 255, 0.5);
+      background: rgba(6, 8, 30, 0.98);
       padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .dm-conversation-header {
+    .dm-contacts-list {
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 2px;
+    }
+
+    .dm-contacts-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .dm-contacts-list::-webkit-scrollbar-thumb {
+      background: var(--accent-alt);
+      border-radius: 999px;
+    }
+
+    .dm-contact {
+      border-radius: 10px;
+      border: 1px solid rgba(255, 107, 203, 0.5);
+      background: radial-gradient(circle at 0 0, rgba(255, 107, 203, 0.2) 0, transparent 55%);
+      padding: 4px 6px;
       font-size: 0.8rem;
+      text-align: left;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      color: var(--text);
+    }
+
+    .dm-contact.active {
+      border-color: rgba(57, 255, 221, 0.8);
+      box-shadow: 0 0 10px rgba(57, 255, 221, 0.8);
+    }
+
+    .dm-contact-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+
+    .dm-contact-name {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .dm-contact-unread {
+      font-size: 0.7rem;
+      color: #050814;
+      background: var(--accent-alt);
+      border-radius: 999px;
+      padding: 1px 6px;
+      font-weight: 600;
+    }
+
+    .dm-contact-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px;
       color: var(--muted);
-      margin-bottom: 4px;
+      font-size: 0.7rem;
+    }
+
+    .dm-contact-snippet {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dm-contact-time {
+      flex-shrink: 0;
+    }
+
+    .dm-header {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+      padding-bottom: 2px;
+      border-bottom: 1px solid rgba(105, 122, 255, 0.5);
     }
 
     .dm-messages {
@@ -851,12 +879,13 @@
       font-size: 0.8rem;
       color: var(--muted);
       font-style: italic;
+      margin: 4px 0;
     }
 
     .dm-form {
       display: flex;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .dm-form input[type="text"] {
@@ -916,15 +945,15 @@
         </div>
       </section>
 
-      <!-- RADAR -->
+      <!-- RADAR + DM -->
       <section>
         <div class="neon-card radar-card">
           <div class="section-header">
             <h2>Radar</h2>
           </div>
           <p class="section-subtitle">
-            Accendi il radar, condividi la tua posizione e clicca sui camperisti sulla mappa
-            per aprire una chat privata. Sei visibile finché non spegni il radar (anche se chiudi la web app).
+            Accendi il radar, condividi la tua posizione e usa i messaggi privati radar per parlare con gli altri.
+            Sarai visibile finché non spegni il radar (anche se chiudi la web app).
           </p>
 
           <div class="radar-controls">
@@ -937,35 +966,36 @@
             <div id="radar-map"></div>
           </div>
 
-          <!-- PANNELLO MESSAGGI PRIVATI (NOTIFICHE + CHAT) -->
-          <div id="dm-window" class="dm-window">
-            <div class="dm-header">
-              <span>Messaggi privati radar</span>
+          <!-- PANNELLO MESSAGGI PRIVATI -->
+          <div id="dm-panel" class="dm-panel">
+            <div class="dm-panel-header">
+              <h3>Messaggi privati radar</h3>
+              <p class="tiny-label">
+                Quando qualcuno ti scrive, appare qui. Clicca sul nome per leggere e rispondere.
+              </p>
             </div>
-            <div class="dm-body">
-              <div id="dm-list" class="dm-list">
-                <p class="dm-empty">Nessun messaggio privato ancora.</p>
+            <div class="dm-layout">
+              <div class="dm-contacts">
+                <div id="dm-contacts-list" class="dm-contacts-list">
+                  <p class="dm-empty">Ancora nessun messaggio privato.</p>
+                </div>
               </div>
-
-              <div id="dm-conversation" class="dm-conversation hidden">
-                <div class="dm-conversation-header">
-                  <span id="dm-header-name">Chat</span>
+              <div class="dm-conversation">
+                <div class="dm-header">
+                  <span id="dm-header-name">Nessuna chat selezionata</span>
                 </div>
                 <div id="dm-messages" class="dm-messages">
-                  <p class="dm-empty">Seleziona un contatto per leggere i messaggi.</p>
+                  <p class="dm-empty">Seleziona un nome a sinistra per vedere i messaggi.</p>
                 </div>
                 <form id="dm-form" class="dm-form">
                   <input
                     id="dm-input"
                     type="text"
                     maxlength="300"
-                    placeholder="Messaggio privato..."
+                    placeholder="Seleziona un contatto dalla lista..."
                   />
                   <button type="submit" class="btn btn-primary btn-small">Invia</button>
                 </form>
-                <p class="tiny-label">
-                  Per inviare e ricevere messaggi devi avere il radar attivo.
-                </p>
               </div>
             </div>
           </div>
@@ -1114,7 +1144,7 @@
       // Chat privata (DM)
       let activeDmUserId = null;
       let activeDmDisplayName = null;
-      const dmContacts = {};
+      const dmContactsByUserId = {};
 
       // DOM Bacheca / Modale
       const postsContainer = document.getElementById("posts");
@@ -1138,13 +1168,12 @@
       const radarNameInput = document.getElementById("radar-name");
 
       // DOM DM
-      const dmWindow = document.getElementById("dm-window");
+      const dmContactsList = document.getElementById("dm-contacts-list");
       const dmHeaderName = document.getElementById("dm-header-name");
       const dmMessages = document.getElementById("dm-messages");
       const dmForm = document.getElementById("dm-form");
       const dmInput = document.getElementById("dm-input");
-      const dmList = document.getElementById("dm-list");
-      const dmConversation = document.getElementById("dm-conversation");
+      const dmSendBtn = dmForm.querySelector('button[type="submit"]');
 
       // Date min/max bacheca (oggi -> oggi+30)
       const today = new Date();
@@ -1745,7 +1774,7 @@
 
       setRadarUI(radarOn);
 
-      // RADAR: inizializza mappa, con retry aggressivo (mobile)
+      // RADAR: inizializza mappa (con retry)
       function initRadarMap(force) {
         if (radarMapInitialized && !force) return;
         const mapEl = document.getElementById("radar-map");
@@ -1811,93 +1840,16 @@
         for (const k in radarMarkersById) delete radarMarkersById[k];
       }
 
-      // DM helpers
-      function renderDmList() {
-        if (!dmList) return;
-        const entries = Object.entries(dmContacts);
-        dmList.innerHTML = "";
-
-        if (!entries.length) {
-          dmList.innerHTML =
-            '<p class="dm-empty">Nessun messaggio privato ancora.</p>';
-          return;
-        }
-
-        entries.sort((a, b) => {
-          const A = a[1];
-          const B = b[1];
-          const unreadA = A.unread || 0;
-          const unreadB = B.unread || 0;
-          if (unreadB !== unreadA) return unreadB - unreadA;
-          const nameA = (A.name || "").toLowerCase();
-          const nameB = (B.name || "").toLowerCase();
-          return nameA.localeCompare(nameB);
-        });
-
-        entries.forEach(([userId, info]) => {
-          const div = document.createElement("div");
-          div.className = "dm-list-item" + (info.unread ? " unread" : "");
-          div.dataset.userId = userId;
-          div.dataset.name = info.name || "";
-          div.innerHTML =
-            '<span class="dm-list-name">' +
-            escapeHtml(info.name || "Camperista") +
-            "</span>" +
-            (info.unread
-              ? '<span class="dm-list-badge">' +
-                info.unread +
-                "</span>"
-              : "");
-          dmList.appendChild(div);
-        });
+      // DM UTIL
+      function setDmFormEnabled(enabled) {
+        dmInput.disabled = !enabled;
+        dmSendBtn.disabled = !enabled;
+        dmInput.placeholder = enabled
+          ? "Scrivi un messaggio privato..."
+          : "Seleziona un contatto dalla lista...";
       }
 
-      function ensureDmContact(otherUserId, displayName, hasNewMessage) {
-        if (!otherUserId) return;
-        const existing = dmContacts[otherUserId] || {
-          name: null,
-          unread: 0,
-        };
-
-        if (!existing.name && displayName) {
-          existing.name = displayName;
-        }
-
-        if (hasNewMessage) {
-          existing.unread = (existing.unread || 0) + 1;
-        }
-
-        dmContacts[otherUserId] = existing;
-        renderDmList();
-      }
-
-      function markDmAsRead(otherUserId) {
-        if (!otherUserId || !dmContacts[otherUserId]) return;
-        dmContacts[otherUserId].unread = 0;
-        renderDmList();
-      }
-
-      // DM (chat privata)
-      async function openDmChat(otherUserId, displayName) {
-        if (!otherUserId || otherUserId === currentUserId) return;
-        const contactInfo = dmContacts[otherUserId];
-        activeDmUserId = otherUserId;
-        activeDmDisplayName =
-          displayName ||
-          (contactInfo && contactInfo.name) ||
-          "Camperista";
-
-        ensureDmContact(otherUserId, activeDmDisplayName, false);
-        markDmAsRead(otherUserId);
-
-        dmHeaderName.textContent = "Chat con " + activeDmDisplayName;
-        dmConversation.classList.remove("hidden");
-        dmMessages.innerHTML =
-          '<p class="dm-empty">Caricamento conversazione...</p>';
-
-        await loadDmHistory(otherUserId);
-        dmInput.focus();
-      }
+      setDmFormEnabled(false);
 
       function appendDmMessage(row) {
         const isSelf = row.sender_id === currentUserId;
@@ -1922,7 +1874,7 @@
       }
 
       async function loadDmHistory(otherUserId) {
-        if (!currentUserId) return;
+        if (!currentUserId || !otherUserId) return;
         try {
           const orFilter =
             `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),` +
@@ -1951,7 +1903,6 @@
           }
 
           data.forEach((row) => appendDmMessage(row));
-          markDmAsRead(otherUserId);
         } catch (err) {
           console.error("Errore loadDmHistory:", err);
           dmMessages.innerHTML =
@@ -1959,15 +1910,137 @@
         }
       }
 
-      if (dmList) {
-        dmList.addEventListener("click", function (e) {
-          const item = e.target.closest(".dm-list-item");
-          if (!item) return;
-          const userId = item.dataset.userId;
-          const name = item.dataset.name;
-          openDmChat(userId, name);
+      function renderDmContacts() {
+        dmContactsList.innerHTML = "";
+        const contacts = Object.values(dmContactsByUserId);
+
+        if (!contacts.length) {
+          dmContactsList.innerHTML =
+            '<p class="dm-empty">Ancora nessun messaggio privato.</p>';
+          return;
+        }
+
+        contacts.sort((a, b) => {
+          if (!a.lastTime) return 1;
+          if (!b.lastTime) return -1;
+          return new Date(b.lastTime) - new Date(a.lastTime);
+        });
+
+        contacts.forEach((c) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className =
+            "dm-contact" + (c.userId === activeDmUserId ? " active" : "");
+          btn.dataset.userId = c.userId;
+
+          const name = escapeHtml(c.displayName || "Camperista");
+          const text = escapeHtml(c.lastMessage || "");
+          let timeStr = "";
+          if (c.lastTime) {
+            const d = new Date(c.lastTime);
+            if (!isNaN(d.getTime())) {
+              timeStr = d.toLocaleTimeString("it-IT", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+            }
+          }
+
+          btn.innerHTML =
+            '<div class="dm-contact-top">' +
+            '<span class="dm-contact-name">' +
+            name +
+            "</span>" +
+            (c.hasUnread
+              ? '<span class="dm-contact-unread">Nuovo</span>'
+              : "") +
+            "</div>" +
+            '<div class="dm-contact-meta">' +
+            (text
+              ? '<span class="dm-contact-snippet">' + text + "</span>"
+              : '<span class="dm-contact-snippet"></span>') +
+            (timeStr
+              ? '<span class="dm-contact-time">' +
+                escapeHtml(timeStr) +
+                "</span>"
+              : "") +
+            "</div>";
+
+          dmContactsList.appendChild(btn);
         });
       }
+
+      function updateDmContactFromMessage(row, isSelfMessage) {
+        if (!currentUserId) return;
+        const me = currentUserId;
+        const sender = row.sender_id;
+        const receiver = row.receiver_id;
+        if (sender !== me && receiver !== me) return;
+
+        const otherId = sender === me ? receiver : sender;
+
+        let name = null;
+        if (sender !== me) {
+          name = row.sender_name || "Camperista";
+        } else {
+          if (activeDmUserId === otherId && activeDmDisplayName) {
+            name = activeDmDisplayName;
+          } else {
+            const radarUser = Object.values(radarUsersById).find(
+              (u) => u.user_id === otherId
+            );
+            name = (radarUser && radarUser.display_name) || "Camperista";
+          }
+        }
+
+        const existing = dmContactsByUserId[otherId] || {};
+        const hasUnread =
+          !isSelfMessage && otherId !== activeDmUserId;
+
+        dmContactsByUserId[otherId] = {
+          userId: otherId,
+          displayName: name,
+          lastMessage: row.text || existing.lastMessage || "",
+          lastTime: row.created_at || existing.lastTime || null,
+          hasUnread: hasUnread ? true : existing.hasUnread || false,
+        };
+
+        renderDmContacts();
+      }
+
+      function openDmChat(otherUserId, displayName) {
+        if (!otherUserId || otherUserId === currentUserId) return;
+
+        activeDmUserId = otherUserId;
+        activeDmDisplayName = displayName || "Camperista";
+
+        dmHeaderName.textContent = "Chat con " + activeDmDisplayName;
+        dmMessages.innerHTML =
+          '<p class="dm-empty">Caricamento conversazione...</p>';
+
+        setDmFormEnabled(true);
+        loadDmHistory(otherUserId);
+        dmInput.focus();
+      }
+
+      dmContactsList.addEventListener("click", function (e) {
+        const btn = e.target.closest(".dm-contact");
+        if (!btn) return;
+        const otherUserId = btn.dataset.userId;
+        if (!otherUserId) return;
+
+        const contact = dmContactsByUserId[otherUserId];
+        const displayName = contact
+          ? contact.displayName
+          : "Camperista";
+
+        if (contact) {
+          contact.hasUnread = false;
+          dmContactsByUserId[otherUserId] = contact;
+        }
+        renderDmContacts();
+        openDmChat(otherUserId, displayName);
+      });
 
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -1975,11 +2048,11 @@
         if (!text) return;
 
         if (!activeDmUserId) {
-          alert("Seleziona prima un utente dal radar o dalla lista contatti.");
+          alert("Seleziona prima un utente dalla lista dei contatti.");
           return;
         }
         if (!radarOn) {
-          alert("Per usare la chat privata devi avere il radar attivo.");
+          alert("Per usare i messaggi privati devi avere il radar attivo.");
           return;
         }
 
@@ -2001,11 +2074,12 @@
           dmInput.value = "";
           const fakeRow = {
             sender_id: currentUserId,
+            receiver_id: activeDmUserId,
             sender_name: senderName,
             text,
             created_at: new Date().toISOString(),
           };
-          ensureDmContact(activeDmUserId, activeDmDisplayName, false);
+          updateDmContactFromMessage(fakeRow, true);
           appendDmMessage(fakeRow);
         } catch (err) {
           console.error("Errore DM submit:", err);
@@ -2013,6 +2087,7 @@
         }
       });
 
+      // RADAR UTENTI
       function renderRadarUsers() {
         if (!radarMap) return;
         clearRadarMarkers();
@@ -2032,11 +2107,20 @@
           });
 
           marker.bindPopup(
-            "<strong>" + name + "</strong><br><em>Clicca per chattare</em>"
+            "<strong>" + name + "</strong><br><em>Clicca per aprire la chat privata</em>"
           );
 
           marker.on("click", function () {
             if (u.user_id) {
+              // aggiorniamo la lista contatti almeno con il nome da radar
+              const fakeRow = {
+                sender_id: u.user_id,
+                receiver_id: currentUserId,
+                sender_name: rawName,
+                text: "",
+                created_at: new Date().toISOString(),
+              };
+              updateDmContactFromMessage(fakeRow, false);
               openDmChat(u.user_id, rawName);
             }
           });
@@ -2074,40 +2158,6 @@
         }
       }
 
-      async function loadDmContactsInitial() {
-        if (!currentUserId) return;
-        try {
-          const orFilter =
-            `sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`;
-          const { data, error } = await sb
-            .from("radar_dm_messages")
-            .select("sender_id, receiver_id, sender_name, created_at")
-            .or(orFilter)
-            .order("created_at", { ascending: false })
-            .limit(200);
-
-          if (error) {
-            console.error("Errore caricando contatti DM:", error);
-            return;
-          }
-          if (!data) return;
-
-          data.forEach((row) => {
-            const otherId =
-              row.sender_id === currentUserId
-                ? row.receiver_id
-                : row.sender_id;
-            const name =
-              row.sender_id === currentUserId
-                ? null
-                : row.sender_name || "Camperista";
-            ensureDmContact(otherId, name, false);
-          });
-        } catch (err) {
-          console.error("Errore loadDmContactsInitial:", err);
-        }
-      }
-
       function subscribeRadarRealtime() {
         sb
           .channel("camperbuddy-radar-channel")
@@ -2140,39 +2190,19 @@
               ) {
                 return;
               }
+              const isSelf = row.sender_id === currentUserId;
+              updateDmContactFromMessage(row, isSelf);
 
-              const otherId =
-                row.sender_id === currentUserId
-                  ? row.receiver_id
-                  : row.sender_id;
-
-              let name;
-              if (row.sender_id === currentUserId) {
-                // cerchiamo il nome dell'altro (se disponibile nel radar)
-                const radarUser = Object.values(radarUsersById).find(
-                  (u) => u.user_id === otherId
-                );
-                name =
-                  (dmContacts[otherId] && dmContacts[otherId].name) ||
-                  (radarUser && radarUser.display_name) ||
-                  "Camperista";
-              } else {
-                name = row.sender_name || "Camperista";
-              }
-
-              if (activeDmUserId && activeDmUserId === otherId) {
+              const otherId = isSelf ? row.receiver_id : row.sender_id;
+              if (!isSelf && activeDmUserId && activeDmUserId === otherId) {
                 appendDmMessage(row);
-                markDmAsRead(otherId);
-              } else {
-                const hasNew = row.sender_id !== currentUserId;
-                ensureDmContact(otherId, name, hasNew);
               }
             }
           )
           .subscribe();
       }
 
-      // *** BACHECA REALTIME ***
+      // BACHECA REALTIME
       function subscribeBachecaRealtime() {
         sb
           .channel("camperbuddy-bacheca-channel")
@@ -2293,14 +2323,37 @@
         }
       });
 
+      // Cancella tutte le chat private dell'utente all'avvio
+      async function clearUserDmMessages() {
+        if (!currentUserId) return;
+
+        try {
+          const { error } = await sb
+            .from("radar_dm_messages")
+            .delete()
+            .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`);
+
+          if (error) {
+            console.error("Errore cancellando DM dell'utente:", error);
+          } else {
+            console.log("Chat private dell'utente cancellate all'avvio.");
+          }
+        } catch (err) {
+          console.error("Errore clearUserDmMessages:", err);
+        }
+      }
+
       // INIT
       (async function init() {
         await ensureAuth();
         if (!currentUserId) return;
 
+        // Cancella le chat private di questo utente ogni volta che entra
+        await clearUserDmMessages();
+
         await loadPostsFromSupabase();
+        initRadarMap();
         await loadRadarInitial();
-        await loadDmContactsInitial();
 
         subscribeRadarRealtime();
         subscribeBachecaRealtime();
@@ -2329,3 +2382,4 @@
   </script>
 </body>
 </html>
+
