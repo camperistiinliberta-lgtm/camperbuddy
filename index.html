@@ -38,9 +38,11 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
+      height: 100%;
     }
 
     body {
@@ -52,10 +54,6 @@
         radial-gradient(circle at 50% 100%, rgba(57, 255, 221, 0.1) 0, transparent 45%),
         #050814;
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
 
     .hidden {
@@ -66,7 +64,7 @@
       max-width: 1200px;
       width: 100%;
       padding: 16px;
-      margin: 0 auto 32px;
+      margin: 0 auto 40px;
     }
 
     header {
@@ -278,7 +276,20 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding-right: 2px;
+      max-height: 580px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .posts-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .posts-list::-webkit-scrollbar-track {
+      background: rgba(8, 12, 32, 0.9);
+    }
+    .posts-list::-webkit-scrollbar-thumb {
+      background: linear-gradient(var(--accent), var(--accent-alt));
+      border-radius: 999px;
     }
 
     .post-card {
@@ -295,7 +306,7 @@
 
     .post-header h3 {
       margin: 0;
-      font-size: 1.0rem;
+      font-size: 1rem;
     }
 
     .post-date {
@@ -304,23 +315,14 @@
       font-weight: 600;
     }
 
-    .post-meta {
+    .post-meta,
+    .post-address {
       margin: 0 0 4px;
       font-size: 0.85rem;
       color: var(--muted);
     }
 
-    .post-meta span {
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    .post-address {
-      margin: 2px 0 6px;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
+    .post-meta span,
     .post-address span {
       color: var(--accent);
       font-weight: 500;
@@ -368,6 +370,8 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+      max-height: 130px;
+      overflow-y: auto;
       margin-bottom: 4px;
     }
 
@@ -430,11 +434,12 @@
       color: var(--muted);
     }
 
+    /* MODALE */
     .modal {
       position: fixed;
       inset: 0;
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       background:
         radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.25) 0, transparent 50%),
@@ -442,7 +447,8 @@
         rgba(0, 0, 0, 0.78);
       backdrop-filter: blur(8px);
       z-index: 9999;
-      padding: 16px;
+      padding: 24px 16px;
+      overflow-y: auto;
     }
 
     .modal.open {
@@ -453,7 +459,6 @@
       max-width: 580px;
       width: 100%;
       max-height: 100%;
-      overflow-y: auto;
     }
 
     .modal-header {
@@ -701,6 +706,14 @@
       padding-right: 4px;
     }
 
+    .radar-messages::-webkit-scrollbar {
+      width: 5px;
+    }
+    .radar-messages::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 999px;
+    }
+
     .radar-message {
       padding: 4px 8px;
       border-radius: 999px;
@@ -803,6 +816,15 @@
       flex-direction: column;
       gap: 4px;
       padding-right: 4px;
+    }
+
+    .dm-messages::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .dm-messages::-webkit-scrollbar-thumb {
+      background: var(--accent-alt);
+      border-radius: 999px;
     }
 
     .dm-message {
@@ -973,16 +995,16 @@
       </div>
       <form id="post-form" class="form">
         <div class="field">
-          <label for="creator-name">Il tuo nome / equipaggio *</label>
+          <label for="creator-name">Il tuo nome / nickname *</label>
           <input
             type="text"
             id="creator-name"
-            maxlength="60"
+            maxlength="40"
             required
-            placeholder="Es. Alessandro, Famiglia Rossi, Vesta crew..."
+            placeholder="Es. Vesta, Alex, Famiglia Rossi..."
           />
           <div class="field-hint">
-            Questo nome verrà mostrato nella bacheca come autore dell'incontro.
+            Questo nome sarà visibile nella bacheca come creatore dell'incontro.
           </div>
           <div class="field-error"></div>
         </div>
@@ -994,12 +1016,31 @@
             id="location"
             maxlength="120"
             required
-            placeholder="Es. Area sosta XYZ, Parco Santa Teresa..."
+            placeholder="Es. Parco Santa Teresa, Area sosta XYZ..."
           />
           <div class="field-hint">
-            Nome del posto che verrà mostrato in grande nella bacheca.
+            Titolo breve del posto. L'indirizzo completo verrà mostrato sotto.
           </div>
           <div class="field-error"></div>
+        </div>
+
+        <div class="field">
+          <label for="address-search">Indirizzo completo (via/piazza, città, numero civico)</label>
+          <div class="address-row">
+            <input
+              type="text"
+              id="address-search"
+              placeholder="Es. Verona, Via Roma 10"
+            />
+            <button type="button" id="address-search-btn" class="btn btn-secondary btn-small">
+              Cerca sulla mappa
+            </button>
+          </div>
+          <div class="field-hint">
+            Inserisci città, via/piazza e numero civico. Se lo troviamo, posizioniamo il segnaposto e
+            usiamo questo testo come indirizzo in bacheca.
+          </div>
+          <div class="field-error" id="address-error"></div>
         </div>
 
         <div class="field">
@@ -1011,25 +1052,6 @@
             Clicca sulla mappa per scegliere il punto dell'incontro.
           </div>
           <div id="map-error" class="field-error"></div>
-        </div>
-
-        <div class="field">
-          <label for="address-search">Oppure cerca per indirizzo (opzionale)</label>
-          <div class="address-row">
-            <input
-              type="text"
-              id="address-search"
-              placeholder="Es. Verona, Viale della Fiera 21"
-            />
-            <button type="button" id="address-search-btn" class="btn btn-secondary btn-small">
-              Cerca sulla mappa
-            </button>
-          </div>
-          <div class="field-hint">
-            Inserisci città, via/piazza e numero civico: posizioneremo il segnaposto sulla mappa
-            e salveremo l'indirizzo completo nella bacheca.
-          </div>
-          <div class="field-error" id="address-error"></div>
         </div>
 
         <div class="field">
@@ -1111,7 +1133,7 @@
       const postForm = document.getElementById("post-form");
       const openPostBtn = document.getElementById("open-post-modal");
       const closePostBtn = document.getElementById("close-post-modal");
-      const creatorInput = document.getElementById("creator-name");
+      const creatorNameInput = document.getElementById("creator-name");
       const locationInput = document.getElementById("location");
       const contactInput = document.getElementById("contact");
       const descInput = document.getElementById("description");
@@ -1248,7 +1270,7 @@
           const { data, error } = await sb
             .from("encounters")
             .select(
-              "id, location_text, address_text, lat, lng, meeting_date, contact, description, owner_id, creator_name, created_at, encounter_comments(id, author_name, text, created_at)"
+              "id, creator_name, address_text, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
             )
             .order("meeting_date", { ascending: true });
 
@@ -1264,15 +1286,15 @@
 
           postsCache = rows.map((row) => ({
             id: String(row.id),
+            creatorName: row.creator_name,
             location: row.location_text,
-            address: row.address_text || null,
+            address: row.address_text,
             lat: row.lat,
             lng: row.lng,
             meetingDate: row.meeting_date,
             contact: row.contact,
             description: row.description,
             ownerId: row.owner_id,
-            creatorName: row.creator_name || null,
             comments: (row.encounter_comments || []).sort((a, b) => {
               const da = new Date(a.created_at);
               const db = new Date(b.created_at);
@@ -1303,7 +1325,7 @@
           card.dataset.id = post.id;
 
           const creatorName = post.creatorName || "Anonimo";
-          const addressLine = post.address || null;
+          const addressLine = post.address || post.location || "";
 
           const commentsHtml = (post.comments || [])
             .map(
@@ -1331,11 +1353,9 @@
             '<p class="post-meta">Creato da: <span>' +
             escapeHtml(creatorName) +
             "</span></p>" +
-            (addressLine
-              ? '<p class="post-address">Indirizzo: <span>' +
-                escapeHtml(addressLine) +
-                "</span></p>"
-              : "") +
+            '<p class="post-address">Indirizzo / zona: <span>' +
+            escapeHtml(addressLine) +
+            "</span></p>" +
             '<p class="post-desc">' +
             escapeHtml(post.description) +
             "</p>" +
@@ -1459,11 +1479,13 @@
           }
           mapErrorEl.textContent = "";
 
+          // aggiorna sempre l'indirizzo "testuale" da salvare
           if (best.display_name) {
-            if (!locationInput.value.trim()) {
-              locationInput.value = best.display_name.slice(0, 120);
-            }
-            addressInput.value = best.display_name;
+            // indirizzo visibile in bacheca
+            addressInput.value = best.display_name.slice(0, 200);
+          }
+          if (!locationInput.value.trim() && best.display_name) {
+            locationInput.value = best.display_name.slice(0, 120);
           }
         } catch (err) {
           console.error("Errore geocoding:", err);
@@ -1487,7 +1509,8 @@
           if (!data) return;
           const display = data.display_name || "";
           if (display) {
-            addressInput.value = display;
+            // compiliamo sia indirizzo che eventualmente titolo
+            addressInput.value = display.slice(0, 200);
             if (!locationInput.value.trim()) {
               locationInput.value = display.slice(0, 120);
             }
@@ -1518,16 +1541,15 @@
         selectedLatLng = null;
 
         if (editPost) {
+          creatorNameInput.value = editPost.creatorName || "";
           locationInput.value = editPost.location || "";
-          creatorInput.value = editPost.creatorName || "";
           contactInput.value = editPost.contact || "";
           descInput.value = editPost.description || "";
           dateInput.value = editPost.meetingDate || "";
-          addressInput.value = editPost.address || editPost.location || "";
+          addressInput.value = editPost.address || "";
           postForm.dataset.editingId = editPost.id;
         } else {
           dateInput.value = "";
-          creatorInput.value = "";
           addressInput.value = "";
         }
 
@@ -1571,16 +1593,17 @@
         e.preventDefault();
         clearFormErrors();
 
-        const creatorVal = creatorInput.value.trim();
+        const creatorVal = creatorNameInput.value.trim();
         const locVal = locationInput.value.trim();
         const contactVal = contactInput.value.trim();
         const descVal = descInput.value.trim();
         const dateVal = dateInput.value;
+        const addrVal = addressInput.value.trim();
 
         let valid = true;
 
         if (!creatorVal) {
-          showError(creatorInput, "Campo obbligatorio");
+          showError(creatorNameInput, "Campo obbligatorio");
           valid = false;
         }
         if (!locVal) {
@@ -1612,14 +1635,14 @@
 
         const payload = {
           owner_id: currentUserId,
-          location_text: locVal,
           creator_name: creatorVal,
+          location_text: locVal,
+          address_text: addrVal || null,
           contact: contactVal,
           description: descVal,
           meeting_date: dateVal,
           lat: selectedLatLng ? selectedLatLng.lat : null,
           lng: selectedLatLng ? selectedLatLng.lng : null,
-          address_text: (addressInput.value || "").trim() || null,
         };
 
         const editingId = postForm.dataset.editingId;
@@ -1740,14 +1763,14 @@
 
       setRadarUI(radarOn);
 
-      // RADAR: inizializza mappa, con retry (mobile)
+      // RADAR: inizializza mappa, con retry aggressivo (mobile)
       function initRadarMap(force) {
         if (radarMapInitialized && !force) return;
         const mapEl = document.getElementById("radar-map");
         if (!mapEl) return;
 
         let tentativi = 0;
-        const maxTentativi = 30;
+        const maxTentativi = 30; // 30 * 200ms = 6 secondi
 
         function createMapWhenReady() {
           if (radarMapInitialized && !force) return;
@@ -1762,7 +1785,7 @@
           }
 
           if (w === 0 || h === 0) {
-            console.warn("Radar map: contenitore senza dimensioni.");
+            console.warn("Radar map: il contenitore sembra non avere dimensioni.");
             mapEl.innerHTML =
               '<div style="color:#39ffdd;font-size:0.8rem;padding:8px;text-align:center;">' +
               'Impossibile inizializzare la mappa del radar qui.<br>' +
@@ -2061,14 +2084,14 @@
               if (activeDmUserId && activeDmUserId === otherId) {
                 appendDmMessage(row);
               } else {
-                // in futuro: notifica visiva
+                // in futuro si può mettere una notifica
               }
             }
           )
           .subscribe();
       }
 
-      // BACHECA REALTIME
+      // *** BACHECA REALTIME ***
       function subscribeBachecaRealtime() {
         sb
           .channel("camperbuddy-bacheca-channel")
