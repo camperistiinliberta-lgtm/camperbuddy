@@ -38,9 +38,11 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
+      height: 100%;
     }
 
     body {
@@ -52,10 +54,6 @@
         radial-gradient(circle at 50% 100%, rgba(57, 255, 221, 0.1) 0, transparent 45%),
         #050814;
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
 
     .hidden {
@@ -66,7 +64,7 @@
       max-width: 1200px;
       width: 100%;
       padding: 16px;
-      margin: 0 auto;
+      margin: 0 auto 40px;
     }
 
     header {
@@ -286,11 +284,9 @@
     .posts-list::-webkit-scrollbar {
       width: 6px;
     }
-
     .posts-list::-webkit-scrollbar-track {
       background: rgba(8, 12, 32, 0.9);
     }
-
     .posts-list::-webkit-scrollbar-thumb {
       background: linear-gradient(var(--accent), var(--accent-alt));
       border-radius: 999px;
@@ -310,7 +306,7 @@
 
     .post-header h3 {
       margin: 0;
-      font-size: 1.0rem;
+      font-size: 1rem;
     }
 
     .post-date {
@@ -319,25 +315,17 @@
       font-weight: 600;
     }
 
-    .post-host {
+    .post-meta,
+    .post-address {
       margin: 0 0 4px;
       font-size: 0.85rem;
       color: var(--muted);
     }
 
-    .post-host span {
+    .post-meta span,
+    .post-address span {
       color: var(--accent);
       font-weight: 500;
-    }
-
-    .post-address {
-      margin: 0 0 4px;
-      font-size: 0.84rem;
-      color: var(--muted);
-    }
-
-    .post-address span {
-      color: var(--accent-alt);
     }
 
     .post-desc {
@@ -446,11 +434,12 @@
       color: var(--muted);
     }
 
+    /* MODALE */
     .modal {
       position: fixed;
       inset: 0;
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       background:
         radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.25) 0, transparent 50%),
@@ -458,7 +447,8 @@
         rgba(0, 0, 0, 0.78);
       backdrop-filter: blur(8px);
       z-index: 9999;
-      padding: 16px;
+      padding: 24px 16px;
+      overflow-y: auto;
     }
 
     .modal.open {
@@ -468,20 +458,7 @@
     .modal-content {
       max-width: 580px;
       width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    @media (max-width: 600px) {
-      .modal {
-        align-items: flex-start;
-      }
-
-      .modal-content {
-        max-height: 100vh;
-        border-radius: 16px;
-        margin-top: 20px;
-      }
+      max-height: 100%;
     }
 
     .modal-header {
@@ -618,7 +595,6 @@
       background: #020412;
       z-index: 0 !important;
     }
-
     .leaflet-pane,
     .leaflet-top,
     .leaflet-bottom {
@@ -700,7 +676,6 @@
       padding: 2px 6px;
       box-shadow: 0 0 8px rgba(57, 255, 221, 0.9);
     }
-
     .radar-name-tooltip.leaflet-tooltip-top:before {
       border-top-color: rgba(57, 255, 221, 0.8);
     }
@@ -734,7 +709,6 @@
     .radar-messages::-webkit-scrollbar {
       width: 5px;
     }
-
     .radar-messages::-webkit-scrollbar-thumb {
       background: var(--accent);
       border-radius: 999px;
@@ -788,66 +762,6 @@
       font-size: 0.75rem;
       color: var(--muted);
       margin-top: 2px;
-    }
-
-    /* NOTIFICHE DM */
-    .dm-notifications {
-      margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 107, 203, 0.5);
-      background: rgba(10, 8, 32, 0.98);
-      padding: 6px 8px;
-      box-shadow:
-        0 0 10px rgba(255, 107, 203, 0.6),
-        0 0 18px rgba(57, 255, 221, 0.4);
-      font-size: 0.8rem;
-    }
-
-    .dm-notifications h4 {
-      margin: 0 0 4px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--accent-alt);
-    }
-
-    .dm-notifications-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .dm-notif-btn {
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: transparent;
-      color: var(--text);
-      font-size: 0.8rem;
-      padding: 4px 2px;
-      cursor: pointer;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .dm-notif-btn:hover {
-      background: rgba(255, 107, 203, 0.12);
-    }
-
-    .dm-notif-name {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .dm-notif-count {
-      color: var(--accent-alt);
-      font-weight: 600;
     }
 
     /* DM (chat privata) */
@@ -1048,14 +962,6 @@
             </p>
           </div>
 
-          <!-- NOTIFICHE DM -->
-          <div id="dm-notifications" class="dm-notifications hidden">
-            <h4>Nuovi messaggi privati</h4>
-            <ul id="dm-notifications-list" class="dm-notifications-list">
-              <li class="dm-empty">Nessun nuovo messaggio privato.</li>
-            </ul>
-          </div>
-
           <!-- CHAT PRIVATA (DM) -->
           <div id="dm-window" class="dm-window hidden">
             <div class="dm-header">
@@ -1089,40 +995,41 @@
       </div>
       <form id="post-form" class="form">
         <div class="field">
-          <label for="host-name">Il tuo nome *</label>
+          <label for="creator-name">Il tuo nome / nickname *</label>
           <input
             type="text"
-            id="host-name"
-            maxlength="60"
+            id="creator-name"
+            maxlength="40"
             required
-            placeholder="Es. Alex, Vesta, ecc."
-          />
-          <div class="field-error"></div>
-        </div>
-
-        <div class="field">
-          <label for="location">Titolo luogo (es. area sosta) *</label>
-          <input
-            type="text"
-            id="location"
-            maxlength="120"
-            required
-            placeholder="Es. Area sosta XYZ, Lago di Garda"
+            placeholder="Es. Vesta, Alex, Famiglia Rossi..."
           />
           <div class="field-hint">
-            Nome del posto o descrizione breve. L'indirizzo preciso è nella casella sotto.
+            Questo nome sarà visibile nella bacheca come creatore dell'incontro.
           </div>
           <div class="field-error"></div>
         </div>
 
         <div class="field">
-          <label for="address-search">Indirizzo preciso *</label>
+          <label for="location">Nome del luogo (titolo) *</label>
+          <input
+            type="text"
+            id="location"
+            maxlength="120"
+            required
+            placeholder="Es. Parco Santa Teresa, Area sosta XYZ..."
+          />
+          <div class="field-hint">
+            Titolo breve del posto. L'indirizzo completo verrà mostrato sotto.
+          </div>
+          <div class="field-error"></div>
+        </div>
+
+        <div class="field">
+          <label for="address-search">Indirizzo completo (via/piazza, città, numero civico)</label>
           <div class="address-row">
             <input
               type="text"
               id="address-search"
-              maxlength="200"
-              required
               placeholder="Es. Verona, Via Roma 10"
             />
             <button type="button" id="address-search-btn" class="btn btn-secondary btn-small">
@@ -1130,7 +1037,8 @@
             </button>
           </div>
           <div class="field-hint">
-            Inserisci città, via/piazza e numero civico: posizioneremo il segnaposto sulla mappa.
+            Inserisci città, via/piazza e numero civico. Se lo troviamo, posizioniamo il segnaposto e
+            usiamo questo testo come indirizzo in bacheca.
           </div>
           <div class="field-error" id="address-error"></div>
         </div>
@@ -1141,8 +1049,7 @@
             <div id="meeting-map"></div>
           </div>
           <div class="field-hint">
-            Clicca sulla mappa per scegliere il punto dell'incontro
-            oppure usa la ricerca indirizzo qui sopra.
+            Clicca sulla mappa per scegliere il punto dell'incontro.
           </div>
           <div id="map-error" class="field-error"></div>
         </div>
@@ -1219,7 +1126,6 @@
       // Chat privata (DM)
       let activeDmUserId = null;
       let activeDmDisplayName = null;
-      const dmUnreadByUserId = {};
 
       // DOM Bacheca / Modale
       const postsContainer = document.getElementById("posts");
@@ -1227,17 +1133,15 @@
       const postForm = document.getElementById("post-form");
       const openPostBtn = document.getElementById("open-post-modal");
       const closePostBtn = document.getElementById("close-post-modal");
-
-      const hostNameInput = document.getElementById("host-name");
+      const creatorNameInput = document.getElementById("creator-name");
       const locationInput = document.getElementById("location");
-      const addressInput = document.getElementById("address-search");
-      const addressSearchBtn = document.getElementById("address-search-btn");
-      const addressErrorEl = document.getElementById("address-error");
-
       const contactInput = document.getElementById("contact");
       const descInput = document.getElementById("description");
       const dateInput = document.getElementById("meeting-date");
       const mapErrorEl = document.getElementById("map-error");
+      const addressInput = document.getElementById("address-search");
+      const addressSearchBtn = document.getElementById("address-search-btn");
+      const addressErrorEl = document.getElementById("address-error");
 
       // DOM Radar (chat generale)
       const radarToggle = document.getElementById("radar-toggle");
@@ -1247,16 +1151,13 @@
       const radarMessages = document.getElementById("radar-messages");
       const radarForm = document.getElementById("radar-form");
 
-      // DOM DM + notifiche DM
+      // DOM DM
       const dmWindow = document.getElementById("dm-window");
       const dmHeaderName = document.getElementById("dm-header-name");
       const dmMessages = document.getElementById("dm-messages");
       const dmForm = document.getElementById("dm-form");
       const dmInput = document.getElementById("dm-input");
       const dmCloseBtn = document.getElementById("dm-close");
-
-      const dmNotificationsBox = document.getElementById("dm-notifications");
-      const dmNotificationsList = document.getElementById("dm-notifications-list");
 
       // Date min/max bacheca (oggi -> oggi+30)
       const today = new Date();
@@ -1369,7 +1270,7 @@
           const { data, error } = await sb
             .from("encounters")
             .select(
-              "id, host_name, location_text, address_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
+              "id, creator_name, address_text, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
             )
             .order("meeting_date", { ascending: true });
 
@@ -1385,7 +1286,7 @@
 
           postsCache = rows.map((row) => ({
             id: String(row.id),
-            hostName: row.host_name,
+            creatorName: row.creator_name,
             location: row.location_text,
             address: row.address_text,
             lat: row.lat,
@@ -1423,6 +1324,9 @@
           card.className = "post-card neon-card";
           card.dataset.id = post.id;
 
+          const creatorName = post.creatorName || "Anonimo";
+          const addressLine = post.address || post.location || "";
+
           const commentsHtml = (post.comments || [])
             .map(
               (c) =>
@@ -1437,31 +1341,21 @@
             )
             .join("");
 
-          const hostLine =
-            post.hostName && post.hostName.trim()
-              ? '<p class="post-host">Host: <span>' +
-                escapeHtml(post.hostName) +
-                "</span></p>"
-              : "";
-
-          const addressLine =
-            post.address && post.address.trim()
-              ? '<p class="post-address">Indirizzo: <span>' +
-                escapeHtml(post.address) +
-                "</span></p>"
-              : "";
-
           card.innerHTML =
             '<div class="post-header">' +
             "<h3>" +
-            escapeHtml(post.location || "Incontro") +
+            escapeHtml(post.location) +
             "</h3>" +
             '<span class="post-date">' +
             formatDate(post.meetingDate) +
             "</span>" +
             "</div>" +
-            hostLine +
-            addressLine +
+            '<p class="post-meta">Creato da: <span>' +
+            escapeHtml(creatorName) +
+            "</span></p>" +
+            '<p class="post-address">Indirizzo / zona: <span>' +
+            escapeHtml(addressLine) +
+            "</span></p>" +
             '<p class="post-desc">' +
             escapeHtml(post.description) +
             "</p>" +
@@ -1585,6 +1479,11 @@
           }
           mapErrorEl.textContent = "";
 
+          // aggiorna sempre l'indirizzo "testuale" da salvare
+          if (best.display_name) {
+            // indirizzo visibile in bacheca
+            addressInput.value = best.display_name.slice(0, 200);
+          }
           if (!locationInput.value.trim() && best.display_name) {
             locationInput.value = best.display_name.slice(0, 120);
           }
@@ -1610,6 +1509,7 @@
           if (!data) return;
           const display = data.display_name || "";
           if (display) {
+            // compiliamo sia indirizzo che eventualmente titolo
             addressInput.value = display.slice(0, 200);
             if (!locationInput.value.trim()) {
               locationInput.value = display.slice(0, 120);
@@ -1641,7 +1541,7 @@
         selectedLatLng = null;
 
         if (editPost) {
-          hostNameInput.value = editPost.hostName || "";
+          creatorNameInput.value = editPost.creatorName || "";
           locationInput.value = editPost.location || "";
           contactInput.value = editPost.contact || "";
           descInput.value = editPost.description || "";
@@ -1693,25 +1593,21 @@
         e.preventDefault();
         clearFormErrors();
 
-        const hostVal = hostNameInput.value.trim();
+        const creatorVal = creatorNameInput.value.trim();
         const locVal = locationInput.value.trim();
-        const addrVal = addressInput.value.trim();
         const contactVal = contactInput.value.trim();
         const descVal = descInput.value.trim();
         const dateVal = dateInput.value;
+        const addrVal = addressInput.value.trim();
 
         let valid = true;
 
-        if (!hostVal) {
-          showError(hostNameInput, "Campo obbligatorio");
+        if (!creatorVal) {
+          showError(creatorNameInput, "Campo obbligatorio");
           valid = false;
         }
         if (!locVal) {
           showError(locationInput, "Campo obbligatorio");
-          valid = false;
-        }
-        if (!addrVal) {
-          showError(addressInput, "Campo obbligatorio");
           valid = false;
         }
         if (!contactVal) {
@@ -1739,9 +1635,9 @@
 
         const payload = {
           owner_id: currentUserId,
-          host_name: hostVal,
+          creator_name: creatorVal,
           location_text: locVal,
-          address_text: addrVal,
+          address_text: addrVal || null,
           contact: contactVal,
           description: descVal,
           meeting_date: dateVal,
@@ -1874,7 +1770,7 @@
         if (!mapEl) return;
 
         let tentativi = 0;
-        const maxTentativi = 30;
+        const maxTentativi = 30; // 30 * 200ms = 6 secondi
 
         function createMapWhenReady() {
           if (radarMapInitialized && !force) return;
@@ -1933,69 +1829,6 @@
         for (const k in radarMarkersById) delete radarMarkersById[k];
       }
 
-      function addRadarMessage(msgRow, isSelf) {
-        const div = document.createElement("div");
-        div.className = "radar-message" + (isSelf ? " self" : "");
-        const name = msgRow.sender_name || "Anonimo";
-        div.textContent = name + ": " + msgRow.text;
-        radarMessages.appendChild(div);
-        radarMessages.scrollTop = radarMessages.scrollHeight;
-      }
-
-      // Helpers DM
-      function findDisplayNameByUserId(userId) {
-        const users = Object.values(radarUsersById);
-        for (const u of users) {
-          if (String(u.user_id) === String(userId)) {
-            return u.display_name || "Camperista";
-          }
-        }
-        return "Camperista";
-      }
-
-      function updateDmNotificationsUI() {
-        const entries = Object.entries(dmUnreadByUserId).filter(
-          ([, count]) => count > 0
-        );
-
-        if (!entries.length) {
-          dmNotificationsBox.classList.add("hidden");
-          dmNotificationsList.innerHTML =
-            '<li class="dm-empty">Nessun nuovo messaggio privato.</li>';
-          return;
-        }
-
-        dmNotificationsBox.classList.remove("hidden");
-        dmNotificationsList.innerHTML = "";
-
-        entries.forEach(([userId, count]) => {
-          const li = document.createElement("li");
-          const displayName = findDisplayNameByUserId(userId);
-          li.innerHTML =
-            '<button class="dm-notif-btn" data-user-id="' +
-            escapeHtml(userId) +
-            '">' +
-            '<span class="dm-notif-name">' +
-            escapeHtml(displayName) +
-            "</span>" +
-            '<span class="dm-notif-count">(' +
-            count +
-            ")</span>" +
-            "</button>";
-          dmNotificationsList.appendChild(li);
-        });
-      }
-
-      dmNotificationsList.addEventListener("click", function (e) {
-        const btn = e.target.closest(".dm-notif-btn");
-        if (!btn) return;
-        const userId = btn.getAttribute("data-user-id");
-        const displayName = findDisplayNameByUserId(userId);
-        openDmChat(userId, displayName);
-        dmUnreadByUserId[userId] = 0;
-        updateDmNotificationsUI();
-      });
-
       // DM (chat privata)
       async function openDmChat(otherUserId, displayName) {
         if (!otherUserId || otherUserId === currentUserId) return;
@@ -2007,10 +1840,6 @@
         dmMessages.innerHTML =
           '<p class="dm-empty">Caricamento conversazione...</p>';
 
-        // Azzeriamo i non letti per questo utente
-        dmUnreadByUserId[otherUserId] = 0;
-        updateDmNotificationsUI();
-
         await loadDmHistory(otherUserId);
         dmInput.focus();
       }
@@ -2019,11 +1848,7 @@
         const isSelf = row.sender_id === currentUserId;
         const div = document.createElement("div");
         div.className = "dm-message" + (isSelf ? " self" : "");
-        const name = isSelf
-          ? "Tu"
-          : row.sender_name ||
-            activeDmDisplayName ||
-            findDisplayNameByUserId(row.sender_id);
+        const name = isSelf ? "Tu" : (row.sender_name || activeDmDisplayName || "Altro");
         const time = formatTime(row.created_at);
 
         div.innerHTML =
@@ -2084,7 +1909,6 @@
         activeDmDisplayName = null;
       });
 
-      // DM SUBMIT: mostra il messaggio SUBITO
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const text = (dmInput.value || "").trim();
@@ -2202,6 +2026,15 @@
         }
       }
 
+      function addRadarMessage(msgRow, isSelf) {
+        const div = document.createElement("div");
+        div.className = "radar-message" + (isSelf ? " self" : "");
+        const name = msgRow.sender_name || "Anonimo";
+        div.textContent = name + ": " + msgRow.text;
+        radarMessages.appendChild(div);
+        radarMessages.scrollTop = radarMessages.scrollHeight;
+      }
+
       function subscribeRadarRealtime() {
         sb
           .channel("camperbuddy-radar-channel")
@@ -2220,7 +2053,6 @@
               if (row.user_id === currentUserId && payload.new) {
                 radarSelfRowId = payload.new.id;
               }
-              updateDmNotificationsUI();
             }
           )
           .on(
@@ -2251,20 +2083,15 @@
 
               if (activeDmUserId && activeDmUserId === otherId) {
                 appendDmMessage(row);
-              } else if (
-                row.receiver_id === currentUserId &&
-                row.sender_id !== currentUserId
-              ) {
-                dmUnreadByUserId[otherId] =
-                  (dmUnreadByUserId[otherId] || 0) + 1;
-                updateDmNotificationsUI();
+              } else {
+                // in futuro si può mettere una notifica
               }
             }
           )
           .subscribe();
       }
 
-      // BACHECA REALTIME
+      // *** BACHECA REALTIME ***
       function subscribeBachecaRealtime() {
         sb
           .channel("camperbuddy-bacheca-channel")
@@ -2450,3 +2277,5 @@
   </script>
 </body>
 </html>
+
+
