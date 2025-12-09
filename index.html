@@ -317,20 +317,28 @@
       font-weight: 600;
     }
 
+    .post-meta {
+      margin: 0 0 4px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .post-meta span {
+      color: var(--accent-alt);
+      font-weight: 500;
+    }
+
     .post-desc {
       margin: 4px 0 6px;
       font-size: 0.9rem;
       color: var(--text);
     }
 
-    .post-owner,
     .post-contact {
-      margin: 0 0 4px;
+      margin: 0 0 6px;
       font-size: 0.85rem;
       color: var(--muted);
     }
 
-    .post-owner span,
     .post-contact span {
       color: var(--accent);
       font-weight: 500;
@@ -425,11 +433,12 @@
       color: var(--muted);
     }
 
+    /* MODALE: ora scrollabile */
     .modal {
       position: fixed;
       inset: 0;
       display: none;
-      align-items: center;
+      align-items: flex-start; /* parte dall'alto */
       justify-content: center;
       background:
         radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.25) 0, transparent 50%),
@@ -438,6 +447,7 @@
       backdrop-filter: blur(8px);
       z-index: 9999;
       padding: 16px;
+      overflow-y: auto; /* permette lo scroll della modale */
     }
 
     .modal.open {
@@ -447,6 +457,8 @@
     .modal-content {
       max-width: 580px;
       width: 100%;
+      max-height: 90vh;  /* non supera lo schermo */
+      overflow-y: auto;  /* scroll interno se serve */
     }
 
     .modal-header {
@@ -983,16 +995,16 @@
       </div>
       <form id="post-form" class="form">
         <div class="field">
-          <label for="owner-name">Il tuo nome (verrà mostrato nel post) *</label>
+          <label for="creator-name">Il tuo nome (verrà mostrato nella bacheca) *</label>
           <input
             type="text"
-            id="owner-name"
-            maxlength="50"
+            id="creator-name"
+            maxlength="60"
             required
-            placeholder="Es. Alessandro"
+            placeholder="Es. Alessandro, Ingrid..."
           />
           <div class="field-hint">
-            Serve per far sapere chi ha creato l'incontro.
+            Comparirà come autore dell'incontro.
           </div>
           <div class="field-error"></div>
         </div>
@@ -1118,7 +1130,7 @@
       const postsContainer = document.getElementById("posts");
       const postModal = document.getElementById("post-modal");
       const postForm = document.getElementById("post-form");
-      const ownerNameInput = document.getElementById("owner-name");
+      const creatorInput = document.getElementById("creator-name");
       const locationInput = document.getElementById("location");
       const contactInput = document.getElementById("contact");
       const descInput = document.getElementById("description");
@@ -1257,7 +1269,7 @@
           const { data, error } = await sb
             .from("encounters")
             .select(
-              "id, owner_name, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
+              "id, creator_name, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
             )
             .order("meeting_date", { ascending: true });
 
@@ -1273,7 +1285,7 @@
 
           postsCache = rows.map((row) => ({
             id: String(row.id),
-            ownerName: row.owner_name,
+            creatorName: row.creator_name,
             location: row.location_text,
             lat: row.lat,
             lng: row.lng,
@@ -1310,6 +1322,8 @@
           card.className = "post-card neon-card";
           card.dataset.id = post.id;
 
+          const creatorName = post.creatorName || "Anonimo";
+
           const commentsHtml = (post.comments || [])
             .map(
               (c) =>
@@ -1333,12 +1347,12 @@
             formatDate(post.meetingDate) +
             "</span>" +
             "</div>" +
+            '<p class="post-meta">Creato da: <span>' +
+            escapeHtml(creatorName) +
+            "</span></p>" +
             '<p class="post-desc">' +
             escapeHtml(post.description) +
             "</p>" +
-            '<p class="post-owner">Creato da: <span>' +
-            escapeHtml(post.ownerName || "Anonimo") +
-            "</span></p>" +
             '<p class="post-contact">Contatto: <span>' +
             escapeHtml(post.contact) +
             "</span></p>" +
@@ -1514,14 +1528,8 @@
         delete postForm.dataset.editingId;
         selectedLatLng = null;
 
-        // Precompila il nome con quello del radar se presente (nuovo)
-        const radarName = (radarNameInput.value || "").trim();
-        if (radarName) {
-          ownerNameInput.value = radarName;
-        }
-
         if (editPost) {
-          ownerNameInput.value = editPost.ownerName || radarName || "";
+          creatorInput.value = editPost.creatorName || "";
           locationInput.value = editPost.location || "";
           contactInput.value = editPost.contact || "";
           descInput.value = editPost.description || "";
@@ -1531,6 +1539,9 @@
         } else {
           dateInput.value = "";
           addressInput.value = "";
+          // Prova a precompilare il nome con quello del radar se c'è
+          const savedName = localStorage.getItem(RADAR_NAME_KEY) || "";
+          creatorInput.value = savedName;
         }
 
         postModal.classList.add("open");
@@ -1573,7 +1584,7 @@
         e.preventDefault();
         clearFormErrors();
 
-        const ownerNameVal = ownerNameInput.value.trim();
+        const creatorVal = creatorInput.value.trim();
         const locVal = locationInput.value.trim();
         const contactVal = contactInput.value.trim();
         const descVal = descInput.value.trim();
@@ -1581,8 +1592,8 @@
 
         let valid = true;
 
-        if (!ownerNameVal) {
-          showError(ownerNameInput, "Campo obbligatorio");
+        if (!creatorVal) {
+          showError(creatorInput, "Campo obbligatorio");
           valid = false;
         }
         if (!locVal) {
@@ -1614,7 +1625,7 @@
 
         const payload = {
           owner_id: currentUserId,
-          owner_name: ownerNameVal,
+          creator_name: creatorVal,
           location_text: locVal,
           contact: contactVal,
           description: descVal,
@@ -1887,6 +1898,7 @@
         activeDmDisplayName = null;
       });
 
+      // DM submit
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const text = (dmInput.value || "").trim();
@@ -2069,7 +2081,7 @@
           .subscribe();
       }
 
-      // *** BACHECA REALTIME ***
+      // BACHECA REALTIME
       function subscribeBachecaRealtime() {
         sb
           .channel("camperbuddy-bacheca-channel")
