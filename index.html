@@ -66,7 +66,7 @@
       max-width: 1200px;
       width: 100%;
       padding: 16px;
-      margin: 0 auto;
+      margin: 0 auto 32px;
     }
 
     header {
@@ -278,20 +278,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      max-height: 580px;
-      overflow-y: auto;
-      padding-right: 6px;
-    }
-
-    .posts-list::-webkit-scrollbar {
-      width: 6px;
-    }
-    .posts-list::-webkit-scrollbar-track {
-      background: rgba(8, 12, 32, 0.9);
-    }
-    .posts-list::-webkit-scrollbar-thumb {
-      background: linear-gradient(var(--accent), var(--accent-alt));
-      border-radius: 999px;
+      padding-right: 2px;
     }
 
     .post-card {
@@ -319,11 +306,23 @@
 
     .post-meta {
       margin: 0 0 4px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--muted);
     }
+
     .post-meta span {
-      color: var(--accent-alt);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .post-address {
+      margin: 2px 0 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .post-address span {
+      color: var(--accent);
       font-weight: 500;
     }
 
@@ -369,8 +368,6 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
-      max-height: 130px;
-      overflow-y: auto;
       margin-bottom: 4px;
     }
 
@@ -433,12 +430,11 @@
       color: var(--muted);
     }
 
-    /* MODALE: versione full-screen con scroll normale pagina */
     .modal {
       position: fixed;
       inset: 0;
       display: none;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       background:
         radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.25) 0, transparent 50%),
@@ -447,7 +443,6 @@
       backdrop-filter: blur(8px);
       z-index: 9999;
       padding: 16px;
-      overflow-y: auto; /* usa lo scroll normale sull’overlay */
     }
 
     .modal.open {
@@ -457,7 +452,8 @@
     .modal-content {
       max-width: 580px;
       width: 100%;
-      /* niente max-height, niente overflow: lo scroll lo gestisce la modale */
+      max-height: 100%;
+      overflow-y: auto;
     }
 
     .modal-header {
@@ -572,13 +568,6 @@
     #meeting-map {
       width: 100%;
       height: 220px;
-    }
-
-    /* Mobile: mappa un po' più piccola per far salire il bottone */
-    @media (max-width: 600px) {
-      #meeting-map {
-        height: 170px;
-      }
     }
 
     .address-row {
@@ -712,14 +701,6 @@
       padding-right: 4px;
     }
 
-    .radar-messages::-webkit-scrollbar {
-      width: 5px;
-    }
-    .radar-messages::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 999px;
-    }
-
     .radar-message {
       padding: 4px 8px;
       border-radius: 999px;
@@ -822,15 +803,6 @@
       flex-direction: column;
       gap: 4px;
       padding-right: 4px;
-    }
-
-    .dm-messages::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .dm-messages::-webkit-scrollbar-thumb {
-      background: var(--accent-alt);
-      border-radius: 999px;
     }
 
     .dm-message {
@@ -1001,31 +973,31 @@
       </div>
       <form id="post-form" class="form">
         <div class="field">
-          <label for="creator-name">Il tuo nome (verrà mostrato nella bacheca) *</label>
+          <label for="creator-name">Il tuo nome / equipaggio *</label>
           <input
             type="text"
             id="creator-name"
             maxlength="60"
             required
-            placeholder="Es. Alessandro, Ingrid..."
+            placeholder="Es. Alessandro, Famiglia Rossi, Vesta crew..."
           />
           <div class="field-hint">
-            Comparirà come autore dell'incontro.
+            Questo nome verrà mostrato nella bacheca come autore dell'incontro.
           </div>
           <div class="field-error"></div>
         </div>
 
         <div class="field">
-          <label for="location">Posizione (descrizione luogo) *</label>
+          <label for="location">Nome del luogo (titolo) *</label>
           <input
             type="text"
             id="location"
             maxlength="120"
             required
-            placeholder="Es. Area sosta XYZ, Città"
+            placeholder="Es. Area sosta XYZ, Parco Santa Teresa..."
           />
           <div class="field-hint">
-            Nome del posto o descrizione. Puoi compilarlo tu o lasciarlo riempire dalla ricerca indirizzo.
+            Nome del posto che verrà mostrato in grande nella bacheca.
           </div>
           <div class="field-error"></div>
         </div>
@@ -1047,14 +1019,15 @@
             <input
               type="text"
               id="address-search"
-              placeholder="Es. Verona, Via Roma 10"
+              placeholder="Es. Verona, Viale della Fiera 21"
             />
             <button type="button" id="address-search-btn" class="btn btn-secondary btn-small">
               Cerca sulla mappa
             </button>
           </div>
           <div class="field-hint">
-            Inserisci città, via/piazza e numero civico: posizioneremo il segnaposto sulla mappa.
+            Inserisci città, via/piazza e numero civico: posizioneremo il segnaposto sulla mappa
+            e salveremo l'indirizzo completo nella bacheca.
           </div>
           <div class="field-error" id="address-error"></div>
         </div>
@@ -1090,7 +1063,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Pubblica incontro</button>
+          <button type="submit" class="btn btn-primary">Salva incontro</button>
         </div>
       </form>
     </div>
@@ -1136,6 +1109,8 @@
       const postsContainer = document.getElementById("posts");
       const postModal = document.getElementById("post-modal");
       const postForm = document.getElementById("post-form");
+      const openPostBtn = document.getElementById("open-post-modal");
+      const closePostBtn = document.getElementById("close-post-modal");
       const creatorInput = document.getElementById("creator-name");
       const locationInput = document.getElementById("location");
       const contactInput = document.getElementById("contact");
@@ -1145,8 +1120,6 @@
       const addressInput = document.getElementById("address-search");
       const addressSearchBtn = document.getElementById("address-search-btn");
       const addressErrorEl = document.getElementById("address-error");
-      const openPostBtn = document.getElementById("open-post-modal");
-      const closePostBtn = document.getElementById("close-post-modal");
 
       // DOM Radar (chat generale)
       const radarToggle = document.getElementById("radar-toggle");
@@ -1275,7 +1248,7 @@
           const { data, error } = await sb
             .from("encounters")
             .select(
-              "id, creator_name, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, author_name, text, created_at)"
+              "id, location_text, address_text, lat, lng, meeting_date, contact, description, owner_id, creator_name, created_at, encounter_comments(id, author_name, text, created_at)"
             )
             .order("meeting_date", { ascending: true });
 
@@ -1291,14 +1264,15 @@
 
           postsCache = rows.map((row) => ({
             id: String(row.id),
-            creatorName: row.creator_name,
             location: row.location_text,
+            address: row.address_text || null,
             lat: row.lat,
             lng: row.lng,
             meetingDate: row.meeting_date,
             contact: row.contact,
             description: row.description,
             ownerId: row.owner_id,
+            creatorName: row.creator_name || null,
             comments: (row.encounter_comments || []).sort((a, b) => {
               const da = new Date(a.created_at);
               const db = new Date(b.created_at);
@@ -1329,6 +1303,7 @@
           card.dataset.id = post.id;
 
           const creatorName = post.creatorName || "Anonimo";
+          const addressLine = post.address || null;
 
           const commentsHtml = (post.comments || [])
             .map(
@@ -1356,6 +1331,11 @@
             '<p class="post-meta">Creato da: <span>' +
             escapeHtml(creatorName) +
             "</span></p>" +
+            (addressLine
+              ? '<p class="post-address">Indirizzo: <span>' +
+                escapeHtml(addressLine) +
+                "</span></p>"
+              : "") +
             '<p class="post-desc">' +
             escapeHtml(post.description) +
             "</p>" +
@@ -1479,8 +1459,11 @@
           }
           mapErrorEl.textContent = "";
 
-          if (!locationInput.value.trim() && best.display_name) {
-            locationInput.value = best.display_name.slice(0, 120);
+          if (best.display_name) {
+            if (!locationInput.value.trim()) {
+              locationInput.value = best.display_name.slice(0, 120);
+            }
+            addressInput.value = best.display_name;
           }
         } catch (err) {
           console.error("Errore geocoding:", err);
@@ -1535,22 +1518,22 @@
         selectedLatLng = null;
 
         if (editPost) {
-          creatorInput.value = editPost.creatorName || "";
           locationInput.value = editPost.location || "";
+          creatorInput.value = editPost.creatorName || "";
           contactInput.value = editPost.contact || "";
           descInput.value = editPost.description || "";
           dateInput.value = editPost.meetingDate || "";
-          addressInput.value = editPost.location || "";
+          addressInput.value = editPost.address || editPost.location || "";
           postForm.dataset.editingId = editPost.id;
         } else {
           dateInput.value = "";
+          creatorInput.value = "";
           addressInput.value = "";
-          const savedName = localStorage.getItem(RADAR_NAME_KEY) || "";
-          creatorInput.value = savedName;
         }
 
         postModal.classList.add("open");
         postModal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
 
         initMeetingMap();
         setTimeout(function () {
@@ -1564,6 +1547,7 @@
       function closeModal() {
         postModal.classList.remove("open");
         postModal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
         clearFormErrors();
         delete postForm.dataset.editingId;
         selectedLatLng = null;
@@ -1628,13 +1612,14 @@
 
         const payload = {
           owner_id: currentUserId,
-          creator_name: creatorVal,
           location_text: locVal,
+          creator_name: creatorVal,
           contact: contactVal,
           description: descVal,
           meeting_date: dateVal,
           lat: selectedLatLng ? selectedLatLng.lat : null,
           lng: selectedLatLng ? selectedLatLng.lng : null,
+          address_text: (addressInput.value || "").trim() || null,
         };
 
         const editingId = postForm.dataset.editingId;
@@ -1755,7 +1740,7 @@
 
       setRadarUI(radarOn);
 
-      // RADAR: inizializza mappa, con retry aggressivo (mobile)
+      // RADAR: inizializza mappa, con retry (mobile)
       function initRadarMap(force) {
         if (radarMapInitialized && !force) return;
         const mapEl = document.getElementById("radar-map");
@@ -1777,7 +1762,7 @@
           }
 
           if (w === 0 || h === 0) {
-            console.warn("Radar map: il contenitore sembra non avere dimensioni.");
+            console.warn("Radar map: contenitore senza dimensioni.");
             mapEl.innerHTML =
               '<div style="color:#39ffdd;font-size:0.8rem;padding:8px;text-align:center;">' +
               'Impossibile inizializzare la mappa del radar qui.<br>' +
@@ -1901,7 +1886,6 @@
         activeDmDisplayName = null;
       });
 
-      // DM submit
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const text = (dmInput.value || "").trim();
@@ -2076,6 +2060,8 @@
 
               if (activeDmUserId && activeDmUserId === otherId) {
                 appendDmMessage(row);
+              } else {
+                // in futuro: notifica visiva
               }
             }
           )
