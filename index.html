@@ -680,91 +680,13 @@
       border-top-color: rgba(57, 255, 221, 0.8);
     }
 
-    .radar-window {
-      margin-top: 4px;
-      border-radius: 14px;
-      border: 1px solid rgba(57, 255, 221, 0.45);
-      background: rgba(5, 10, 28, 0.96);
-      padding: 8px;
-      box-shadow: 0 0 14px rgba(57, 255, 221, 0.55);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .radar-window.disabled {
-      opacity: 0.5;
-    }
-
-    .radar-messages {
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding-right: 4px;
-    }
-
-    .radar-messages::-webkit-scrollbar {
-      width: 5px;
-    }
-    .radar-messages::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 999px;
-    }
-
-    .radar-message {
-      padding: 4px 8px;
-      border-radius: 999px;
-      align-self: flex-start;
-      border: 1px solid rgba(57, 255, 221, 0.5);
-      background: radial-gradient(circle at 0 0, rgba(57, 255, 221, 0.3) 0, transparent 50%);
-    }
-
-    .radar-message.self {
-      align-self: flex-end;
-      border-color: rgba(255, 107, 203, 0.7);
-      background: radial-gradient(circle at 100% 0, rgba(255, 107, 203, 0.35) 0, transparent 50%);
-    }
-
-    .radar-form {
-      display: flex;
-      gap: 6px;
-    }
-
-    .radar-form input[type="text"] {
-      flex: 1;
-      min-width: 0;
-      border-radius: 999px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.96);
-      color: var(--text);
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      outline: none;
-    }
-
-    .radar-form input::placeholder {
-      color: rgba(154, 160, 194, 0.9);
-    }
-
-    .radar-form input:focus {
-      border-color: var(--accent-alt);
-      box-shadow: 0 0 7px rgba(255, 107, 203, 0.8);
-    }
-
-    .radar-form .btn-small {
-      flex-shrink: 0;
-    }
-
     .tiny-label {
       font-size: 0.75rem;
       color: var(--muted);
       margin-top: 2px;
     }
 
-    /* DM (chat privata) */
+    /* DM (chat privata + lista contatti) */
     .dm-window {
       margin-top: 8px;
       border-radius: 14px;
@@ -792,20 +714,84 @@
       font-weight: 600;
     }
 
-    .dm-close {
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 0 4px;
-      border-radius: 999px;
-      transition: all 0.15s ease-out;
+    .dm-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .dm-close:hover {
-      color: var(--accent-alt);
-      background: rgba(255, 107, 203, 0.15);
+    .dm-list {
+      border-radius: 10px;
+      border: 1px solid rgba(255, 107, 203, 0.4);
+      padding: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .dm-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .dm-list::-webkit-scrollbar-thumb {
+      background: var(--accent-alt);
+      border-radius: 999px;
+    }
+
+    .dm-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      margin-bottom: 4px;
+      border-radius: 999px;
+      cursor: pointer;
+      background: rgba(16, 12, 48, 0.9);
+      border: 1px solid transparent;
+      transition: background 0.15s ease-out, border-color 0.15s ease-out,
+        box-shadow 0.15s ease-out;
+    }
+
+    .dm-list-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .dm-list-item:hover {
+      background: rgba(24, 18, 64, 0.95);
+      border-color: rgba(255, 107, 203, 0.7);
+    }
+
+    .dm-list-item.unread {
+      border-color: rgba(255, 107, 203, 0.9);
+      box-shadow: 0 0 8px rgba(255, 107, 203, 0.7);
+    }
+
+    .dm-list-name {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .dm-list-badge {
+      background: var(--accent-alt);
+      color: #050814;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      min-width: 18px;
+      text-align: center;
+      margin-left: 6px;
+    }
+
+    .dm-conversation {
+      border-radius: 10px;
+      border: 1px solid rgba(57, 255, 221, 0.4);
+      padding: 6px;
+    }
+
+    .dm-conversation-header {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
     }
 
     .dm-messages {
@@ -870,7 +856,7 @@
     .dm-form {
       display: flex;
       gap: 6px;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .dm-form input[type="text"] {
@@ -937,8 +923,8 @@
             <h2>Radar</h2>
           </div>
           <p class="section-subtitle">
-            Accendi il radar, condividi la tua posizione e scrivi nella chat radar in tempo reale.
-            Sarai visibile finché non spegni il radar (anche se chiudi la web app).
+            Accendi il radar, condividi la tua posizione e clicca sui camperisti sulla mappa
+            per aprire una chat privata. Sei visibile finché non spegni il radar (anche se chiudi la web app).
           </p>
 
           <div class="radar-controls">
@@ -951,35 +937,37 @@
             <div id="radar-map"></div>
           </div>
 
-          <div id="radar-window" class="radar-window disabled">
-            <div id="radar-messages" class="radar-messages"></div>
-            <form id="radar-form" class="radar-form">
-              <input type="text" name="message" maxlength="200" placeholder="Scrivi un messaggio sul radar..." />
-              <button type="submit" class="btn btn-primary btn-small">Invia</button>
-            </form>
-            <p class="tiny-label">
-              La chat radar è condivisa tra tutti quelli con radar attivo.
-            </p>
-          </div>
-
-          <!-- CHAT PRIVATA (DM) -->
-          <div id="dm-window" class="dm-window hidden">
+          <!-- PANNELLO MESSAGGI PRIVATI (NOTIFICHE + CHAT) -->
+          <div id="dm-window" class="dm-window">
             <div class="dm-header">
-              <span id="dm-header-name">Chat</span>
-              <button id="dm-close" class="dm-close" aria-label="Chiudi chat">&times;</button>
+              <span>Messaggi privati radar</span>
             </div>
-            <div id="dm-messages" class="dm-messages">
-              <p class="dm-empty">Seleziona un utente dal radar per iniziare la chat privata.</p>
+            <div class="dm-body">
+              <div id="dm-list" class="dm-list">
+                <p class="dm-empty">Nessun messaggio privato ancora.</p>
+              </div>
+
+              <div id="dm-conversation" class="dm-conversation hidden">
+                <div class="dm-conversation-header">
+                  <span id="dm-header-name">Chat</span>
+                </div>
+                <div id="dm-messages" class="dm-messages">
+                  <p class="dm-empty">Seleziona un contatto per leggere i messaggi.</p>
+                </div>
+                <form id="dm-form" class="dm-form">
+                  <input
+                    id="dm-input"
+                    type="text"
+                    maxlength="300"
+                    placeholder="Messaggio privato..."
+                  />
+                  <button type="submit" class="btn btn-primary btn-small">Invia</button>
+                </form>
+                <p class="tiny-label">
+                  Per inviare e ricevere messaggi devi avere il radar attivo.
+                </p>
+              </div>
             </div>
-            <form id="dm-form" class="dm-form">
-              <input
-                id="dm-input"
-                type="text"
-                maxlength="300"
-                placeholder="Messaggio privato..."
-              />
-              <button type="submit" class="btn btn-primary btn-small">Invia</button>
-            </form>
           </div>
         </div>
       </section>
@@ -1126,6 +1114,7 @@
       // Chat privata (DM)
       let activeDmUserId = null;
       let activeDmDisplayName = null;
+      const dmContacts = {};
 
       // DOM Bacheca / Modale
       const postsContainer = document.getElementById("posts");
@@ -1143,13 +1132,10 @@
       const addressSearchBtn = document.getElementById("address-search-btn");
       const addressErrorEl = document.getElementById("address-error");
 
-      // DOM Radar (chat generale)
+      // DOM Radar
       const radarToggle = document.getElementById("radar-toggle");
       const radarStatus = document.getElementById("radar-status");
       const radarNameInput = document.getElementById("radar-name");
-      const radarWindow = document.getElementById("radar-window");
-      const radarMessages = document.getElementById("radar-messages");
-      const radarForm = document.getElementById("radar-form");
 
       // DOM DM
       const dmWindow = document.getElementById("dm-window");
@@ -1157,7 +1143,8 @@
       const dmMessages = document.getElementById("dm-messages");
       const dmForm = document.getElementById("dm-form");
       const dmInput = document.getElementById("dm-input");
-      const dmCloseBtn = document.getElementById("dm-close");
+      const dmList = document.getElementById("dm-list");
+      const dmConversation = document.getElementById("dm-conversation");
 
       // Date min/max bacheca (oggi -> oggi+30)
       const today = new Date();
@@ -1479,9 +1466,7 @@
           }
           mapErrorEl.textContent = "";
 
-          // aggiorna sempre l'indirizzo "testuale" da salvare
           if (best.display_name) {
-            // indirizzo visibile in bacheca
             addressInput.value = best.display_name.slice(0, 200);
           }
           if (!locationInput.value.trim() && best.display_name) {
@@ -1509,7 +1494,6 @@
           if (!data) return;
           const display = data.display_name || "";
           if (display) {
-            // compiliamo sia indirizzo che eventualmente titolo
             addressInput.value = display.slice(0, 200);
             if (!locationInput.value.trim()) {
               locationInput.value = display.slice(0, 120);
@@ -1752,11 +1736,9 @@
         if (on) {
           radarToggle.textContent = "Spegni radar";
           radarStatus.textContent = "Radar attivo";
-          radarWindow.classList.remove("disabled");
         } else {
           radarToggle.textContent = "Accendi radar";
           radarStatus.textContent = "Radar spento";
-          radarWindow.classList.add("disabled");
         }
         localStorage.setItem(RADAR_ON_KEY, on ? "1" : "0");
       }
@@ -1770,7 +1752,7 @@
         if (!mapEl) return;
 
         let tentativi = 0;
-        const maxTentativi = 30; // 30 * 200ms = 6 secondi
+        const maxTentativi = 30;
 
         function createMapWhenReady() {
           if (radarMapInitialized && !force) return;
@@ -1829,14 +1811,87 @@
         for (const k in radarMarkersById) delete radarMarkersById[k];
       }
 
+      // DM helpers
+      function renderDmList() {
+        if (!dmList) return;
+        const entries = Object.entries(dmContacts);
+        dmList.innerHTML = "";
+
+        if (!entries.length) {
+          dmList.innerHTML =
+            '<p class="dm-empty">Nessun messaggio privato ancora.</p>';
+          return;
+        }
+
+        entries.sort((a, b) => {
+          const A = a[1];
+          const B = b[1];
+          const unreadA = A.unread || 0;
+          const unreadB = B.unread || 0;
+          if (unreadB !== unreadA) return unreadB - unreadA;
+          const nameA = (A.name || "").toLowerCase();
+          const nameB = (B.name || "").toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+
+        entries.forEach(([userId, info]) => {
+          const div = document.createElement("div");
+          div.className = "dm-list-item" + (info.unread ? " unread" : "");
+          div.dataset.userId = userId;
+          div.dataset.name = info.name || "";
+          div.innerHTML =
+            '<span class="dm-list-name">' +
+            escapeHtml(info.name || "Camperista") +
+            "</span>" +
+            (info.unread
+              ? '<span class="dm-list-badge">' +
+                info.unread +
+                "</span>"
+              : "");
+          dmList.appendChild(div);
+        });
+      }
+
+      function ensureDmContact(otherUserId, displayName, hasNewMessage) {
+        if (!otherUserId) return;
+        const existing = dmContacts[otherUserId] || {
+          name: null,
+          unread: 0,
+        };
+
+        if (!existing.name && displayName) {
+          existing.name = displayName;
+        }
+
+        if (hasNewMessage) {
+          existing.unread = (existing.unread || 0) + 1;
+        }
+
+        dmContacts[otherUserId] = existing;
+        renderDmList();
+      }
+
+      function markDmAsRead(otherUserId) {
+        if (!otherUserId || !dmContacts[otherUserId]) return;
+        dmContacts[otherUserId].unread = 0;
+        renderDmList();
+      }
+
       // DM (chat privata)
       async function openDmChat(otherUserId, displayName) {
         if (!otherUserId || otherUserId === currentUserId) return;
+        const contactInfo = dmContacts[otherUserId];
         activeDmUserId = otherUserId;
-        activeDmDisplayName = displayName || "Camperista";
+        activeDmDisplayName =
+          displayName ||
+          (contactInfo && contactInfo.name) ||
+          "Camperista";
+
+        ensureDmContact(otherUserId, activeDmDisplayName, false);
+        markDmAsRead(otherUserId);
 
         dmHeaderName.textContent = "Chat con " + activeDmDisplayName;
-        dmWindow.classList.remove("hidden");
+        dmConversation.classList.remove("hidden");
         dmMessages.innerHTML =
           '<p class="dm-empty">Caricamento conversazione...</p>';
 
@@ -1896,6 +1951,7 @@
           }
 
           data.forEach((row) => appendDmMessage(row));
+          markDmAsRead(otherUserId);
         } catch (err) {
           console.error("Errore loadDmHistory:", err);
           dmMessages.innerHTML =
@@ -1903,11 +1959,15 @@
         }
       }
 
-      dmCloseBtn.addEventListener("click", function () {
-        dmWindow.classList.add("hidden");
-        activeDmUserId = null;
-        activeDmDisplayName = null;
-      });
+      if (dmList) {
+        dmList.addEventListener("click", function (e) {
+          const item = e.target.closest(".dm-list-item");
+          if (!item) return;
+          const userId = item.dataset.userId;
+          const name = item.dataset.name;
+          openDmChat(userId, name);
+        });
+      }
 
       dmForm.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -1915,7 +1975,7 @@
         if (!text) return;
 
         if (!activeDmUserId) {
-          alert("Seleziona prima un utente dal radar cliccando sul suo marker.");
+          alert("Seleziona prima un utente dal radar o dalla lista contatti.");
           return;
         }
         if (!radarOn) {
@@ -1945,6 +2005,7 @@
             text,
             created_at: new Date().toISOString(),
           };
+          ensureDmContact(activeDmUserId, activeDmDisplayName, false);
           appendDmMessage(fakeRow);
         } catch (err) {
           console.error("Errore DM submit:", err);
@@ -2008,31 +2069,43 @@
           initRadarMap();
           if (radarMap) radarMap.invalidateSize();
           renderRadarUsers();
-
-          const { data: msgs, error: msgsErr } = await sb
-            .from("radar_messages")
-            .select("*")
-            .order("created_at", { ascending: true })
-            .limit(100);
-
-          radarMessages.innerHTML = "";
-          if (!msgsErr && msgs) {
-            msgs.forEach((m) =>
-              addRadarMessage(m, m.sender_id === currentUserId)
-            );
-          }
         } catch (err) {
           console.error("Errore loadRadarInitial:", err);
         }
       }
 
-      function addRadarMessage(msgRow, isSelf) {
-        const div = document.createElement("div");
-        div.className = "radar-message" + (isSelf ? " self" : "");
-        const name = msgRow.sender_name || "Anonimo";
-        div.textContent = name + ": " + msgRow.text;
-        radarMessages.appendChild(div);
-        radarMessages.scrollTop = radarMessages.scrollHeight;
+      async function loadDmContactsInitial() {
+        if (!currentUserId) return;
+        try {
+          const orFilter =
+            `sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`;
+          const { data, error } = await sb
+            .from("radar_dm_messages")
+            .select("sender_id, receiver_id, sender_name, created_at")
+            .or(orFilter)
+            .order("created_at", { ascending: false })
+            .limit(200);
+
+          if (error) {
+            console.error("Errore caricando contatti DM:", error);
+            return;
+          }
+          if (!data) return;
+
+          data.forEach((row) => {
+            const otherId =
+              row.sender_id === currentUserId
+                ? row.receiver_id
+                : row.sender_id;
+            const name =
+              row.sender_id === currentUserId
+                ? null
+                : row.sender_name || "Camperista";
+            ensureDmContact(otherId, name, false);
+          });
+        } catch (err) {
+          console.error("Errore loadDmContactsInitial:", err);
+        }
       }
 
       function subscribeRadarRealtime() {
@@ -2057,15 +2130,6 @@
           )
           .on(
             "postgres_changes",
-            { event: "INSERT", schema: "public", table: "radar_messages" },
-            (payload) => {
-              const row = payload.new;
-              if (!row) return;
-              addRadarMessage(row, row.sender_id === currentUserId);
-            }
-          )
-          .on(
-            "postgres_changes",
             { event: "INSERT", schema: "public", table: "radar_dm_messages" },
             (payload) => {
               const row = payload.new;
@@ -2076,15 +2140,32 @@
               ) {
                 return;
               }
+
               const otherId =
                 row.sender_id === currentUserId
                   ? row.receiver_id
                   : row.sender_id;
 
+              let name;
+              if (row.sender_id === currentUserId) {
+                // cerchiamo il nome dell'altro (se disponibile nel radar)
+                const radarUser = Object.values(radarUsersById).find(
+                  (u) => u.user_id === otherId
+                );
+                name =
+                  (dmContacts[otherId] && dmContacts[otherId].name) ||
+                  (radarUser && radarUser.display_name) ||
+                  "Camperista";
+              } else {
+                name = row.sender_name || "Camperista";
+              }
+
               if (activeDmUserId && activeDmUserId === otherId) {
                 appendDmMessage(row);
+                markDmAsRead(otherId);
               } else {
-                // in futuro si può mettere una notifica
+                const hasNew = row.sender_id !== currentUserId;
+                ensureDmContact(otherId, name, hasNew);
               }
             }
           )
@@ -2212,43 +2293,14 @@
         }
       });
 
-      radarForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const input = radarForm.message;
-        const msg = (input.value || "").trim();
-        if (!msg) return;
-        if (!radarOn) {
-          alert("Per inviare messaggi devi avere il radar attivo.");
-          return;
-        }
-        const name = (radarNameInput.value || "").trim() || "Tu";
-
-        try {
-          const { error } = await sb.from("radar_messages").insert({
-            sender_id: currentUserId,
-            sender_name: name,
-            text: msg,
-          });
-          if (error) {
-            console.error("Errore inserendo radar_message:", error);
-            alert("Errore nell'invio del messaggio radar.");
-            return;
-          }
-          input.value = "";
-        } catch (err) {
-          console.error("Errore invio messaggio radar:", err);
-          alert("Errore imprevisto nell'invio del messaggio radar.");
-        }
-      });
-
       // INIT
       (async function init() {
         await ensureAuth();
         if (!currentUserId) return;
 
         await loadPostsFromSupabase();
-        initRadarMap();
         await loadRadarInitial();
+        await loadDmContactsInitial();
 
         subscribeRadarRealtime();
         subscribeBachecaRealtime();
@@ -2277,5 +2329,3 @@
   </script>
 </body>
 </html>
-
-
