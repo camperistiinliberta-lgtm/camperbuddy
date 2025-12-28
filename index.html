@@ -277,7 +277,7 @@
     .address-row { display: flex; gap: 6px; align-items: stretch; }
     .address-row input { flex: 1; min-width: 0; }
 
-    /* Leaflet: NON tocchiamo più i pane z-index (era la causa tipica dei marker invisibili) */
+    /* Leaflet: NON tocchiamo più i pane z-index */
     .leaflet-container { background: #020412; z-index: 0; }
 
     /* RADAR */
@@ -442,7 +442,7 @@
     </header>
 
     <main>
-      <!-- RADAR (prima su mobile) -->
+      <!-- RADAR -->
       <section class="radar-section">
         <div class="neon-card">
           <div class="section-header">
@@ -463,7 +463,7 @@
             <div id="radar-map"></div>
           </div>
 
-          <!-- CHAT PRIVATA (inbox) -->
+          <!-- DM -->
           <div id="dm-window" class="dm-window">
             <div class="dm-header">Messaggi privati radar</div>
             <div class="dm-body">
@@ -577,6 +577,7 @@
 
   <script>
     (() => {
+      // ✅ INSERITE LE TUE CHIAVI
       const SUPABASE_URL = "https://rxfdutzvncdrudhavtco.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4ZmR1dHp2bmNkcnVkaGF2dGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNTI5MTUsImV4cCI6MjA4MDcyODkxNX0.fdAJXTybv5Kw9ggc_oGsJ8nVMvbpQbJpTiydoFXM0HE";
@@ -664,14 +665,14 @@
         currentUserId = data?.user?.id || null;
       }
 
-      // ====== COMMENTI: ownership locale (come già ti avevo messo) ======
+      // ====== COMMENTI: ownership locale ======
       const OWN_COMMENTS_KEY = "cb_owned_comments_v1";
       const readOwnMap = () => { try { return JSON.parse(localStorage.getItem(OWN_COMMENTS_KEY) || "{}"); } catch { return {}; } };
       const writeOwnMap = (m) => localStorage.setItem(OWN_COMMENTS_KEY, JSON.stringify(m || {}));
       const markOwn = (commentId, encounterId) => { const m = readOwnMap(); m[String(commentId)] = String(encounterId); writeOwnMap(m); };
       const isOwn = (commentId, encounterId) => readOwnMap()[String(commentId)] === String(encounterId);
 
-      // ====== BACHECA (immutata come logica, con fallback) ======
+      // ====== BACHECA ======
       let postsCache = [];
 
       const cleanupExpiredRows = (rows) => {
@@ -937,7 +938,7 @@
         loadPostsDebounced();
       });
 
-      // ====== MAPPA INCONTRO (come prima, solo essenziale) ======
+      // ====== MAPPA INCONTRO ======
       let meetingMap = null, meetingMarker = null, selectedLatLng = null, meetingMapInit = false;
 
       const clearFormErrors = () => {
@@ -1108,7 +1109,9 @@
         loadPostsDebounced();
       });
 
-      // ====== RADAR FIX MARKER (QUI È IL FIX CHE TI SERVE) ======
+      // ====== RADAR: AUTO-EXPIRE 24 ORE ======
+      const RADAR_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
       const RADAR_ON_KEY = "camperbuddy_radar_on";
       const RADAR_NAME_KEY = "camperbuddy_radar_name";
       const RADAR_LAST_LAT = "camperbuddy_radar_last_lat";
@@ -1135,6 +1138,22 @@
       let activeDmUserId = null;
       let activeDmName = null;
 
+      function isFreshRadarRow(u) {
+        // se last_seen manca => consideralo vecchio e lo nascondiamo
+        const t = u?.last_seen ? new Date(u.last_seen).getTime() : 0;
+        if (!t) return false;
+        return (Date.now() - t) <= RADAR_TTL_MS;
+      }
+
+      function pruneStaleRadarCache() {
+        const now = Date.now();
+        for (const [id, u] of Object.entries(radarUsersByRowId)) {
+          const t = u?.last_seen ? new Date(u.last_seen).getTime() : 0;
+          const stale = !t || (now - t) > RADAR_TTL_MS;
+          if (stale) delete radarUsersByRowId[id];
+        }
+      }
+
       function initRadarMap() {
         if (radarMapInit) return;
         radarMap = L.map("radar-map").setView([45.4, 10.99], 5);
@@ -1143,7 +1162,6 @@
           attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
         }).addTo(radarMap);
 
-        // CLICK: imposta posizione manuale (così SEMPRE visibile)
         radarMap.on("click", async (e) => {
           if (!radarOn) {
             alert("Accendi il radar prima, poi clicca sulla mappa per impostare la posizione.");
@@ -1167,10 +1185,11 @@
 
       function renderRadarUsers() {
         if (!radarMap) return;
+        pruneStaleRadarCache(); // ✅ pulizia locale ogni render
         clearRadarMarkers();
 
         const users = Object.values(radarUsersByRowId)
-          .filter((u) => u?.active && u.lat != null && u.lng != null);
+          .filter((u) => u?.active && isFreshRadarRow(u) && u.lat != null && u.lng != null);
 
         for (const u of users) {
           const marker = L.marker([u.lat, u.lng]).addTo(radarMap);
@@ -1190,7 +1209,6 @@
           radarMarkers[u.id] = marker;
         }
 
-        // se ci sono utenti, centra “un po'” la vista
         if (users.length) {
           const self = users.find(u => u.user_id === currentUserId) || users[0];
           radarMap.setView([self.lat, self.lng], 7);
@@ -1209,29 +1227,28 @@
         localStorage.setItem(RADAR_LAST_LNG, String(lng));
       }
 
-      // throttle update posizione (non spam DB)
       let lastPosUpdateAt = 0;
       async function setRadarLocation(lat, lng, label) {
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
         storeLastCoords(lat, lng);
 
-        // aggiorna cache locale (se esiste già la tua riga)
+        const nowIso = new Date().toISOString();
+
         const myRow = Object.values(radarUsersByRowId).find(u => u.user_id === currentUserId);
         if (myRow) {
-          myRow.lat = lat; myRow.lng = lng; myRow.active = true;
+          myRow.lat = lat; myRow.lng = lng; myRow.active = true; myRow.last_seen = nowIso;
         }
 
         renderRadarUsers();
         setRadarUI(true, label || "posizione aggiornata");
 
-        // Throttle: max 1 update ogni 12s
         const now = Date.now();
         if (now - lastPosUpdateAt < 12000) return;
         lastPosUpdateAt = now;
 
         const r = await sb
           .from("radar_users")
-          .update({ lat, lng, last_seen: new Date().toISOString(), active: true })
+          .update({ lat, lng, last_seen: nowIso, active: true })
           .eq("user_id", currentUserId);
 
         if (r.error) console.warn("Update posizione radar fallito:", r.error);
@@ -1261,13 +1278,9 @@
         watchId = navigator.geolocation.watchPosition(
           (p) => {
             if (!radarOn) return;
-            const lat = p.coords.latitude;
-            const lng = p.coords.longitude;
-            setRadarLocation(lat, lng, "posizione aggiornata (GPS)");
+            setRadarLocation(p.coords.latitude, p.coords.longitude, "posizione aggiornata (GPS)");
           },
-          () => {
-            // se fallisce non blocchiamo nulla
-          },
+          () => {},
           { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
         );
       }
@@ -1280,10 +1293,14 @@
       }
 
       async function loadRadarInitial() {
+        // ✅ carica SOLO righe attive e fresche (<= 24h)
+        const cutoffIso = new Date(Date.now() - RADAR_TTL_MS).toISOString();
+
         const users = await sb
           .from("radar_users")
-          .select("id, user_id, display_name, lat, lng, active")
-          .eq("active", true);
+          .select("id, user_id, display_name, lat, lng, active, last_seen")
+          .eq("active", true)
+          .gte("last_seen", cutoffIso);
 
         if (!users.error && users.data) {
           for (const u of users.data) radarUsersByRowId[u.id] = u;
@@ -1293,20 +1310,26 @@
       }
 
       function subscribeRealtime() {
-        // radar users
         sb.channel("cb-radar-users")
           .on("postgres_changes", { event: "*", schema: "public", table: "radar_users" }, (payload) => {
             const row = payload.new || payload.old;
             if (!row) return;
-            if (payload.eventType === "DELETE") delete radarUsersByRowId[row.id];
-            else radarUsersByRowId[row.id] = row;
+
+            if (payload.eventType === "DELETE") {
+              delete radarUsersByRowId[row.id];
+            } else {
+              // aggiorna cache
+              radarUsersByRowId[row.id] = row;
+              // se è già scaduto, lo buttiamo fuori subito
+              if (!row.active || !isFreshRadarRow(row)) delete radarUsersByRowId[row.id];
+            }
 
             renderRadarUsers();
           })
           .subscribe();
       }
 
-      // ====== DM: lasciato come prima (non tocco qui per non rompere) ======
+      // ====== DM (immutato) ======
       function renderDmInbox() {
         dmInbox.innerHTML = "";
         const entries = Object.entries(dmThreads).sort(([, a], [, b]) => {
@@ -1432,7 +1455,7 @@
         renderDmInbox();
       });
 
-      // Radar: ON/OFF (con fallback coords)
+      // Radar: ON/OFF
       radarToggle.addEventListener("click", async () => {
         initRadarMap();
 
@@ -1441,19 +1464,15 @@
           if (!name) return alert("Per attivare il radar inserisci il tuo nome.");
           localStorage.setItem(RADAR_NAME_KEY, name);
 
-          // 1) provo GPS
           let coords = await tryGetGeolocationOnce(6000);
-
-          // 2) fallback: ultima posizione salvata
           if (!coords) coords = getLastCoordsFromStorage();
-
-          // 3) fallback: centro mappa (così marker SI VEDE)
           if (!coords) {
             const c = radarMap.getCenter();
             coords = { lat: c.lat, lng: c.lng };
           }
 
-          // upsert con lat/lng sempre valorizzati
+          const nowIso = new Date().toISOString();
+
           const up = await sb.from("radar_users").upsert(
             {
               user_id: currentUserId,
@@ -1461,10 +1480,10 @@
               lat: coords.lat,
               lng: coords.lng,
               active: true,
-              last_seen: new Date().toISOString(),
+              last_seen: nowIso, // ✅ fondamentale per TTL
             },
             { onConflict: "user_id" }
-          ).select("id, user_id, display_name, lat, lng, active").maybeSingle();
+          ).select("id, user_id, display_name, lat, lng, active, last_seen").maybeSingle();
 
           if (up.error) {
             console.error("Errore attiva radar:", up.error);
@@ -1478,7 +1497,6 @@
           setRadarUI(true, "sei visibile — clicca sulla mappa per correggere posizione");
           renderRadarUsers();
 
-          // se GPS disponibile, avvio watch (leggero)
           startWatchPosition();
           return;
         }
@@ -1510,9 +1528,8 @@
 
         if (r.error) console.warn("Update nome radar fallito:", r.error);
 
-        // aggiorna tooltip subito (render)
         const myRow = Object.values(radarUsersByRowId).find(u => u.user_id === currentUserId);
-        if (myRow) myRow.display_name = name;
+        if (myRow) { myRow.display_name = name; myRow.last_seen = new Date().toISOString(); }
         renderRadarUsers();
       }, 400));
 
@@ -1526,7 +1543,7 @@
         subscribeRealtime();
       }
 
-      // Invalidate map sizes (stabile)
+      // Invalidate map sizes
       const invalidateAllMaps = debounce(() => {
         meetingMap && meetingMap.invalidateSize();
         radarMap && radarMap.invalidateSize();
@@ -1536,6 +1553,13 @@
       window.addEventListener("resize", invalidateAllMaps);
       window.addEventListener("orientationchange", () => setTimeout(invalidateAllMaps, 250));
       document.addEventListener("visibilitychange", () => { if (!document.hidden) invalidateAllMaps(); });
+
+      // ✅ pulizia periodica lato client (così spariscono anche senza eventi realtime)
+      setInterval(() => {
+        if (!radarMapInit) return;
+        pruneStaleRadarCache();
+        renderRadarUsers();
+      }, 60 * 1000);
 
       // INIT
       (async () => {
@@ -1548,7 +1572,6 @@
         subscribeAllRealtime();
         invalidateAllMaps();
 
-        // se radar era ON da localStorage, provo ad aggiornare posizione “soft”
         if (radarOn) {
           const coords = await tryGetGeolocationOnce(2500);
           if (coords) setRadarLocation(coords.lat, coords.lng, "posizione aggiornata (reconnect)");
