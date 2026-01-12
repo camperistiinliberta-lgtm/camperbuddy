@@ -1,1584 +1,707 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <title>CamperBuddy</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CamperBuddy</title>
 
-  <!-- Leaflet (MAPPE) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-  <!-- Supabase JS client via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:system-ui;background:#05070d;color:#eaf2ff}
 
-  <style>
-    :root {
-      --bg: #050814;
-      --bg-soft: #080c20;
-      --accent: #39ffdd;
-      --accent-alt: #ff6bcb;
-      --accent-soft: rgba(57, 255, 221, 0.4);
-      --accent-alt-soft: rgba(255, 107, 203, 0.4);
-      --text: #f5f5ff;
-      --muted: #9aa0c2;
-      --danger: #ff4d6a;
-    }
+/* TORNIAMO FIXED per bypassare i contenitori WordPress (colonna bianca, padding tema ecc.) */
+#app{position:fixed;inset:0;display:grid;grid-template-columns:50% 50%}
+body.admin-bar #app{top:32px}
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; min-height: 100%; }
+#map{width:100%;height:100%;background:#0b1020}
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.12) 0, transparent 40%),
-        radial-gradient(circle at 90% 0%, rgba(255, 107, 203, 0.12) 0, transparent 40%),
-        radial-gradient(circle at 50% 100%, rgba(57, 255, 221, 0.1) 0, transparent 45%),
-        #050814;
-      color: var(--text);
-    }
+#chatWrap{display:grid;grid-template-rows:auto 1fr;height:100%;background:#000}
+#authBox{padding:14px;background:#05070d;border-bottom:1px solid #222}
+#title{text-align:center;font-size:22px;font-weight:900;color:#00e5ff;text-shadow:0 0 10px #00e5ff,0 0 20px #ff2bd6;margin-bottom:8px}
 
-    .app { max-width: 1200px; width: 100%; padding: 16px; margin: 0 auto 40px; }
+input,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #333;background:#05070d;color:#fff;box-sizing:border-box}
+textarea{resize:none}
+button{padding:8px 12px;border-radius:20px;border:none;font-weight:800;cursor:pointer}
+.btnMain{background:linear-gradient(135deg,#00e5ff,#ff2bd6);color:#000}
+.btnAlt{background:#141b33;color:#fff}
+#radarBtn{margin-top:6px;background:#1b233f;color:#fff}
 
-    header {
-      margin-bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
+#chatBody{display:grid;grid-template-columns:260px 1fr;height:100%;background:#000}
+#chatList{background:#000;border-right:1px solid #222;overflow-y:auto}
+.chatItem{display:flex;gap:10px;padding:10px;border-bottom:1px solid #1e1e1e;cursor:pointer}
+.chatItem.active{background:#0f1324}
+.chatText{flex:1;min-width:0}
+.chatName{font-weight:800}
+.chatLast{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    .brand-main {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 10px;
-    }
+.chatDel{
+  width:30px;height:30px;border-radius:10px;border:1px solid #ff3b3b;
+  background:#2a0f12;color:#ff3b3b;display:grid;place-items:center;cursor:pointer;flex:0 0 auto
+}
+.chatDel:hover{background:#ff3b3b;color:#000;box-shadow:0 0 12px rgba(255,59,59,.6)}
 
-    .brand-title {
-      margin: 0;
-      font-size: clamp(1.9rem, 3vw, 2.4rem);
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, #39ffdd, #ff6bcb, #6b8bff, #39ffdd);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 8px rgba(57, 255, 221, 0.9), 0 0 18px rgba(255, 107, 203, 0.8), 0 0 28px rgba(107, 139, 255, 0.8);
-      animation: brandGlow 6s linear infinite;
-      white-space: nowrap;
-    }
+#chat{display:flex;flex-direction:column;min-width:0;background:#000}
+#chatHeader{padding:12px;background:#000;border-bottom:1px solid #222;font-weight:800}
+#messages{flex:1;overflow-y:auto;padding:12px;background:#000}
+.msg{max-width:70%;padding:10px;border-radius:12px;margin:6px 0;word-wrap:break-word}
+.me{margin-left:auto;background:#00e5ff;color:#000}
+.them{background:#1b233f}
 
-    @keyframes brandGlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+#composer{display:flex;gap:8px;padding:10px;border-top:1px solid #222;background:#000}
+#composer input{flex:1}
+#composer button{background:linear-gradient(135deg,#00e5ff,#ff2bd6)}
 
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      text-shadow: 0 0 7px rgba(57, 255, 221, 0.9), 0 0 15px rgba(255, 107, 203, 0.8);
-    }
+/* Bottone Rendez-vous (più grande) */
+#rvToggle{
+  position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  z-index:9000;
+  padding:14px 28px;border-radius:26px;font-size:18px;
+  background:linear-gradient(135deg,#00e5ff,#ff2bd6);
+  font-weight:900;border:none;
+  box-shadow:0 0 18px rgba(0,0,0,.35);
+}
 
-    .logo span.icon { font-size: 1.3rem; }
-    .logo span.text-main { color: var(--accent); }
-    .logo span.text-sub { color: var(--accent-alt); font-weight: 400; font-size: 0.9rem; text-transform: none; }
+/* Panel */
+#rvPanel{
+  position:fixed;left:0;right:0;bottom:-110%;
+  height:64%;
+  background:#05070d;border-top:2px solid #ff2bd6;
+  z-index:9001;transition:bottom .35s ease;display:flex;flex-direction:column
+}
+#rvPanel.open{bottom:0}
 
-    header p { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; max-width: 520px; }
+/* Header con Chiudi non sovrapposto */
+#rvHeader{
+  padding:12px 96px 12px 16px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:900;color:#00e5ff;border-bottom:1px solid #222;
+  position:relative;min-height:52px;
+}
+#rvClose{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:#141b33;color:#fff;border-radius:14px;padding:6px 12px;font-weight:900
+}
 
-    main { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr); gap: 24px; }
+#rvForm{padding:12px;display:grid;gap:8px}
+#rvFormRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#rvPickBtn{background:#1b233f;color:#fff}
+#rvHint{font-size:12px;color:#aaa;margin-top:-2px}
 
-    @media (max-width: 900px) {
-      main { display: flex; flex-direction: column; gap: 24px; }
-      .radar-section { order: 1; }
-      .board-section { order: 2; }
-    }
+#rvDateRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-    .neon-card {
-      background: radial-gradient(circle at 0 0, rgba(57, 255, 221, 0.06) 0, transparent 55%),
-                  radial-gradient(circle at 100% 0, rgba(255, 107, 203, 0.06) 0, transparent 55%),
-                  rgba(8, 12, 32, 0.96);
-      border-radius: 18px;
-      border: 1px solid rgba(105, 122, 255, 0.35);
-      box-shadow: 0 0 15px rgba(57, 255, 221, 0.5), 0 0 40px rgba(255, 107, 203, 0.25);
-      padding: 18px 18px 16px;
-      position: relative;
-      overflow: hidden;
-    }
+#rvActions{display:flex;gap:8px}
+#rvPublishBtn{flex:1}
+#rvCancelEditBtn{display:none;background:#141b33;color:#fff}
 
-    .section-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .section-header h2 { margin: 0; font-size: 1.1rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
-    .section-subtitle { margin: 0 0 10px; font-size: 0.9rem; color: var(--muted); }
+#rvList{flex:1;overflow-y:auto;padding:12px;border-top:1px solid #222}
 
-    .btn {
-      border: none; outline: none; cursor: pointer;
-      font-family: inherit; font-size: 0.9rem;
-      padding: 8px 16px; border-radius: 999px;
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 6px; transition: all 0.15s ease-out; white-space: nowrap;
-    }
+.rvItem{border:1px solid #222;border-radius:10px;padding:10px;margin-bottom:10px}
+.rvTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.rvUser{font-weight:800}
+.rvMeta{font-size:12px;color:#aaa;margin-top:2px}
+.rvText{margin:8px 0;font-size:14px}
+.rvBtns{display:flex;gap:8px}
+.rvBtnDel{background:#2a0f12;color:#ff3b3b;border:1px solid #ff3b3b}
+.rvBtnEdit{background:#141b33;color:#fff;border:1px solid #333}
 
-    .btn-primary {
-      background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.24) 0, transparent 40%),
-                  linear-gradient(90deg, var(--accent) 0%, var(--accent-alt) 100%);
-      color: #050814;
-      font-weight: 600;
-      box-shadow: 0 0 10px rgba(57, 255, 221, 0.65), 0 0 25px rgba(255, 107, 203, 0.55);
-      border: 1px solid rgba(57, 255, 221, 0.7);
-    }
-    .btn-secondary {
-      background: rgba(16, 24, 64, 0.85);
-      color: var(--accent);
-      border: 1px solid rgba(57, 255, 221, 0.6);
-      box-shadow: 0 0 10px rgba(57, 255, 221, 0.4);
-    }
-    .btn-danger {
-      background: rgba(70, 10, 26, 0.95);
-      color: #ffdce6;
-      border: 1px solid rgba(255, 77, 106, 0.7);
-      box-shadow: 0 0 10px rgba(255, 77, 106, 0.6);
-    }
-    .btn-small { padding: 4px 10px; font-size: 0.8rem; }
-
-    /* BACHECA */
-    .posts-list { display: flex; flex-direction: column; gap: 12px; max-height: none; overflow: visible; padding-right: 0; }
-    .post-card { padding: 14px 14px 10px; }
-    .post-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-    .post-header h3 { margin: 0; font-size: 1rem; }
-    .post-date { font-size: 0.85rem; color: var(--accent-alt); font-weight: 600; }
-    .post-meta, .post-address { margin: 0 0 4px; font-size: 0.85rem; color: var(--muted); }
-    .post-meta span, .post-address span { color: var(--accent); font-weight: 500; }
-    .post-desc { margin: 4px 0 6px; font-size: 0.9rem; color: var(--text); }
-    .post-contact { margin: 0 0 6px; font-size: 0.85rem; color: var(--muted); }
-    .post-contact span { color: var(--accent); font-weight: 500; }
-    .post-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 4px; }
-
-    .comments { border-top: 1px solid rgba(105, 122, 255, 0.45); margin-top: 6px; padding-top: 6px; }
-    .comments h4 { margin: 0 0 4px; font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
-
-    .comment-list { display: flex; flex-direction: column; gap: 3px; max-height: 160px; overflow-y: auto; margin-bottom: 4px; padding-right: 4px; }
-    .no-comments { margin: 0; font-size: 0.8rem; color: var(--muted); font-style: italic; }
-    .comment-item {
-      font-size: 0.8rem;
-      background: rgba(10, 16, 40, 0.9);
-      border-radius: 10px;
-      padding: 4px 8px;
-      border: 1px solid rgba(57, 255, 221, 0.25);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      align-items: center;
-    }
-    .comment-author { font-weight: 600; color: var(--accent-alt); margin-right: 2px; }
-    .comment-text { flex: 1; word-break: break-word; }
-    .comment-actions { display: inline-flex; gap: 4px; margin-left: 4px; }
-    .comments .btn-tiny {
-      border-radius: 999px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.96);
-      color: var(--muted);
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      cursor: pointer;
-    }
-
-    .comment-form { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-    .comment-form input[type="text"] {
-      flex: 1; min-width: 0;
-      border-radius: 999px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.95);
-      color: var(--text);
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      outline: none;
-    }
-
-    .empty-state { margin: 6px 0 0; font-size: 0.9rem; color: var(--muted); }
-
-    /* MODALE */
-    .modal {
-      position: fixed; inset: 0;
-      display: none;
-      align-items: flex-start;
-      justify-content: center;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(57, 255, 221, 0.25) 0, transparent 50%),
-        radial-gradient(circle at 90% 0%, rgba(255, 107, 203, 0.25) 0, transparent 50%),
-        rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(8px);
-      z-index: 9999;
-      padding: 24px 16px;
-      overflow-y: auto;
-    }
-    .modal.open { display: flex; }
-    .modal-content { max-width: 580px; width: 100%; }
-
-    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .modal-header h2 { margin: 0; font-size: 1.05rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
-    .modal-close {
-      border: none; background: transparent;
-      color: var(--muted);
-      font-size: 1.4rem;
-      cursor: pointer;
-      padding: 0 4px;
-      line-height: 1;
-      border-radius: 999px;
-    }
-
-    .form { display: flex; flex-direction: column; gap: 10px; }
-    .field { display: flex; flex-direction: column; gap: 4px; }
-    .field label { font-size: 0.85rem; color: var(--text); }
-    .field-hint { font-size: 0.75rem; color: var(--muted); }
-    .field-error { min-height: 14px; font-size: 0.75rem; color: var(--danger); }
-
-    .field input, .field textarea {
-      border-radius: 12px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.96);
-      color: var(--text);
-      padding: 8px 10px;
-      font-size: 0.9rem;
-      outline: none;
-      resize: vertical;
-    }
-
-    .field textarea { min-height: 60px; max-height: 140px; }
-    .field-invalid { border-color: var(--danger) !important; box-shadow: 0 0 8px rgba(255, 77, 106, 0.8) !important; }
-    .form-actions { margin-top: 4px; display: flex; justify-content: flex-end; }
-
-    /* MAPPA modale incontri */
-    .map-box {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      box-shadow: 0 0 12px rgba(57, 255, 221, 0.4);
-      background: #020412;
-    }
-    #meeting-map { width: 100%; height: 220px; }
-
-    .address-row { display: flex; gap: 6px; align-items: stretch; }
-    .address-row input { flex: 1; min-width: 0; }
-
-    /* Leaflet: NON tocchiamo più i pane z-index (era la causa tipica dei marker invisibili) */
-    .leaflet-container { background: #020412; z-index: 0; }
-
-    /* RADAR */
-    .radar-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-    .radar-controls input {
-      flex: 1; min-width: 0;
-      border-radius: 999px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.96);
-      color: var(--text);
-      padding: 7px 10px;
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .radar-status { margin: 0 0 6px; font-size: 0.85rem; color: var(--muted); }
-
-    .radar-map-box {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      box-shadow: 0 0 12px rgba(57, 255, 221, 0.4);
-      background: #020412;
-      margin-bottom: 6px;
-      min-height: 220px;
-    }
-    #radar-map { width: 100%; height: 220px; }
-
-    .radar-name-tooltip {
-      background: rgba(5, 10, 28, 0.95);
-      border-radius: 999px;
-      border: 1px solid rgba(57, 255, 221, 0.8);
-      color: var(--accent);
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      box-shadow: 0 0 8px rgba(57, 255, 221, 0.9);
-    }
-    .radar-name-tooltip.leaflet-tooltip-top:before { border-top-color: rgba(57, 255, 221, 0.8); }
-
-    .tiny-label { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-    /* DM */
-    .dm-window {
-      margin-top: 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 107, 203, 0.6);
-      background: rgba(10, 8, 32, 0.98);
-      padding: 8px;
-      box-shadow: 0 0 14px rgba(255, 107, 203, 0.7), 0 0 28px rgba(57, 255, 221, 0.4);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .dm-header { font-size: 0.9rem; color: var(--accent); font-weight: 600; }
-
-    .dm-body { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr); gap: 8px; }
-    @media (max-width: 900px) { .dm-body { grid-template-columns: minmax(0, 1fr); } }
-
-    .dm-inbox {
-      border-radius: 10px;
-      border: 1px solid rgba(57, 255, 221, 0.4);
-      background: rgba(4, 8, 24, 0.98);
-      padding: 6px;
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .dm-inbox-empty { color: var(--muted); font-style: italic; }
-    .dm-inbox-item {
-      padding: 4px 6px;
-      border-radius: 8px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .dm-inbox-item.unread {
-      border-color: rgba(255, 107, 203, 0.7);
-      background: radial-gradient(circle at 0 0, rgba(255, 107, 203, 0.2) 0, transparent 55%);
-    }
-
-    .dm-inbox-name { font-weight: 600; color: var(--accent); }
-    .dm-inbox-preview { color: var(--muted); font-size: 0.75rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-
-    .dm-chat {
-      border-radius: 10px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(4, 8, 24, 0.98);
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-height: 260px;
-    }
-
-    .dm-chat-header { font-size: 0.85rem; color: var(--muted); margin-bottom: 2px; }
-    .dm-chat-header span { color: var(--accent); font-weight: 600; }
-
-    .dm-messages {
-      flex: 1;
-      overflow-y: auto;
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding-right: 4px;
-    }
-
-    .dm-message {
-      padding: 4px 8px;
-      border-radius: 12px;
-      align-self: flex-start;
-      border: 1px solid rgba(57, 255, 221, 0.4);
-      background: radial-gradient(circle at 0 0, rgba(57, 255, 221, 0.25) 0, transparent 55%);
-      display: inline-flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      max-width: 100%;
-    }
-    .dm-message.self {
-      align-self: flex-end;
-      border-color: rgba(255, 107, 203, 0.8);
-      background: radial-gradient(circle at 100% 0, rgba(255, 107, 203, 0.3) 0, transparent 55%);
-    }
-    .dm-author { font-weight: 600; color: var(--accent-alt); }
-    .dm-text { color: var(--text); word-break: break-word; }
-    .dm-time { font-size: 0.7rem; color: var(--muted); margin-left: auto; }
-    .dm-empty { font-size: 0.8rem; color: var(--muted); font-style: italic; }
-
-    .dm-form { display: flex; gap: 6px; margin-top: 2px; }
-    .dm-form input[type="text"] {
-      flex: 1; min-width: 0;
-      border-radius: 999px;
-      border: 1px solid rgba(105, 122, 255, 0.6);
-      background: rgba(8, 12, 32, 0.96);
-      color: var(--text);
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      outline: none;
-    }
-  </style>
+@media (max-width: 980px){
+  #app{grid-template-columns:1fr;grid-template-rows:45% 55%}
+  #chatBody{grid-template-columns:220px 1fr}
+  #rvPanel{height:70%}
+}
+</style>
 </head>
 
 <body>
-  <div class="app">
-    <header>
-      <div class="brand-main">
-        <h1 class="brand-title">Camperisti in Libertà</h1>
-        <div class="logo">
-          <span class="icon">🚐</span>
-          <span class="text-main">CamperBuddy</span>
-          <span class="text-sub">incontri &amp; radar</span>
+
+<div id="app">
+  <div id="map"></div>
+
+  <div id="chatWrap">
+    <div id="authBox">
+      <div id="title">CamperBuddy</div>
+
+      <div id="authForm">
+        <!-- ✅ Nick: prima volta sì, poi mostra solo riepilogo -->
+        <div id="nickRow">
+          <input id="nickname" placeholder="Nick name (quello che vedranno gli utenti)">
+        </div>
+
+        <div id="nickDisplayRow" style="display:none;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="flex:1;color:#cfe6ff">
+            Nick: <b id="nickDisplay" style="color:#00e5ff"></b>
+          </div>
+          <button type="button" class="btnAlt" id="changeNickBtn">Cambia</button>
+        </div>
+
+        <input id="email" placeholder="Email" autocomplete="username">
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btnMain" onclick="login()">Login</button>
+          <button class="btnAlt" onclick="signup()">Registrati</button>
         </div>
       </div>
-      <p>
-        Segna dove sarai nei prossimi 30 giorni, organizza un incontro e fatti trovare
-        da altri camperisti. La bacheca e il radar usano Supabase come backend.
-      </p>
-    </header>
 
-    <main>
-      <!-- RADAR (prima su mobile) -->
-      <section class="radar-section">
-        <div class="neon-card">
-          <div class="section-header">
-            <h2>Radar</h2>
-          </div>
-          <p class="section-subtitle">
-            Accendi il radar, condividi la tua posizione e usa i messaggi privati con gli altri camperisti.
-            <b>Clicca sulla mappa per aggiornare la tua posizione</b>.
-          </p>
+      <div id="userInfo" style="display:none">
+        Loggato come <b id="userEmail"></b>
+        <button class="btnAlt" onclick="logout()" style="margin-left:8px">Logout</button>
+        <button id="radarBtn" onclick="toggleRadar()">🟢 Radar ON</button>
+      </div>
+    </div>
 
-          <div class="radar-controls">
-            <input id="radar-name" type="text" maxlength="30" placeholder="Il tuo nome per il radar" />
-            <button id="radar-toggle" class="btn btn-secondary">Accendi radar</button>
-          </div>
-          <p id="radar-status" class="radar-status">Radar spento</p>
-
-          <div class="radar-map-box">
-            <div id="radar-map"></div>
-          </div>
-
-          <!-- CHAT PRIVATA (inbox) -->
-          <div id="dm-window" class="dm-window">
-            <div class="dm-header">Messaggi privati radar</div>
-            <div class="dm-body">
-              <div class="dm-inbox" id="dm-inbox">
-                <p class="dm-inbox-empty">Quando qualcuno ti scrive dal radar lo vedi qui.</p>
-              </div>
-
-              <div class="dm-chat">
-                <div class="dm-chat-header" id="dm-chat-header">
-                  Nessuna chat selezionata<br />
-                  <span>Seleziona un contatto dal radar o dalla lista messaggi.</span>
-                </div>
-                <div id="dm-messages" class="dm-messages">
-                  <p class="dm-empty">Nessun messaggio.</p>
-                </div>
-                <form id="dm-form" class="dm-form">
-                  <input id="dm-input" type="text" maxlength="300" placeholder="Messaggio privato..." />
-                  <button type="submit" class="btn btn-primary btn-small">Invia</button>
-                </form>
-              </div>
-            </div>
-            <p class="tiny-label">Per inviare/ricevere messaggi privati devi avere il radar attivo.</p>
-          </div>
+    <div id="chatBody">
+      <div id="chatList"></div>
+      <div id="chat">
+        <div id="chatHeader">Seleziona una chat</div>
+        <div id="messages"></div>
+        <div id="composer">
+          <input id="msgInput" placeholder="Scrivi un messaggio" disabled>
+          <button id="sendBtn" onclick="sendMsg()" disabled>Invia</button>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</div>
 
-      <!-- BACHECA -->
-      <section class="board-section">
-        <div class="neon-card">
-          <div class="section-header">
-            <h2>Bacheca incontri (30 giorni)</h2>
-            <button id="open-post-modal" class="btn btn-primary">+ Crea un incontro</button>
-          </div>
-          <p class="section-subtitle">
-            Dalla data di oggi puoi creare incontri entro 1 mese. Il post sparisce dalla bacheca
-            1 giorno dopo la data dell'incontro.
-          </p>
-          <div id="posts" class="posts-list"></div>
-        </div>
-      </section>
-    </main>
+<button id="rvToggle">📍 Rendez-vous</button>
+
+<div id="rvPanel">
+  <div id="rvHeader">
+    Rendez-vous camperisti
+    <button id="rvClose" type="button">Chiudi</button>
   </div>
 
-  <!-- MODALE CREA/MODIFICA INCONTRO -->
-  <div id="post-modal" class="modal" aria-hidden="true">
-    <div class="modal-content neon-card">
-      <div class="modal-header">
-        <h2>Crea / modifica incontro</h2>
-        <button id="close-post-modal" class="modal-close" aria-label="Chiudi">&times;</button>
+  <div id="rvForm">
+    <div id="rvFormRow">
+      <div>
+        <input id="rvAddress" placeholder="Indirizzo esatto (clicca su mappa)" readonly>
+        <div id="rvHint">Premi “Seleziona da mappa”, poi clicca un punto sulla mappa.</div>
       </div>
+      <div>
+        <input id="rvContact" placeholder="Contatto (mail o telefono)">
+        <button id="rvPickBtn" type="button" style="margin-top:8px;width:100%">📌 Seleziona da mappa</button>
+      </div>
+    </div>
 
-      <form id="post-form" class="form">
-        <div class="field">
-          <label for="creator-name">Il tuo nome / nickname *</label>
-          <input type="text" id="creator-name" maxlength="40" required placeholder="Es. Vesta, Alex, Famiglia Rossi..." />
-          <div class="field-hint">Questo nome sarà visibile nella bacheca come creatore dell'incontro.</div>
-          <div class="field-error"></div>
-        </div>
+    <textarea id="rvText" maxlength="200" placeholder="Messaggio (max 200 caratteri)"></textarea>
 
-        <div class="field">
-          <label for="location">Nome del luogo (titolo) *</label>
-          <input type="text" id="location" maxlength="120" required placeholder="Es. Parco Santa Teresa, Area sosta XYZ..." />
-          <div class="field-hint">Titolo breve del posto. L'indirizzo completo verrà mostrato sotto.</div>
-          <div class="field-error"></div>
-        </div>
+    <div id="rvDateRow">
+      <input id="rvStart" type="datetime-local">
+      <input id="rvEnd" type="datetime-local">
+    </div>
+    <div style="font-size:12px;color:#aaa;margin-top:-6px">
+      Data rendez-vous: <b>DAL</b> e <b>AL</b> (obbligatorio). Dopo 24 ore dalla fine viene cancellato.
+    </div>
 
-        <div class="field">
-          <label for="address-search">Indirizzo completo (via/piazza, città, numero civico)</label>
-          <div class="address-row">
-            <input type="text" id="address-search" placeholder="Es. Verona, Via Roma 10" />
-            <button type="button" id="address-search-btn" class="btn btn-secondary btn-small">Cerca sulla mappa</button>
-          </div>
-          <div class="field-hint">
-            Inserisci città, via/piazza e numero civico. Se lo troviamo, posizioniamo il segnaposto e
-            usiamo questo testo come indirizzo in bacheca.
-          </div>
-          <div class="field-error" id="address-error"></div>
-        </div>
-
-        <div class="field">
-          <label>Posizione sulla mappa *</label>
-          <div class="map-box"><div id="meeting-map"></div></div>
-          <div class="field-hint">Clicca sulla mappa per scegliere il punto dell'incontro.</div>
-          <div id="map-error" class="field-error"></div>
-        </div>
-
-        <div class="field">
-          <label for="meeting-date">Data dell'incontro (prossimi 30 giorni) *</label>
-          <input type="date" id="meeting-date" required />
-          <div class="field-error"></div>
-        </div>
-
-        <div class="field">
-          <label for="contact">Contatto (mail o telefono) *</label>
-          <input type="text" id="contact" maxlength="120" required placeholder="Es. +39..., nome@dominio.com" />
-          <div class="field-error"></div>
-        </div>
-
-        <div class="field">
-          <label for="description">Breve descrizione (max 200 caratteri) *</label>
-          <textarea id="description" rows="3" maxlength="200" required placeholder="Es. Sosta di due giorni, chi si unisce?"></textarea>
-          <div class="field-error"></div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Salva incontro</button>
-        </div>
-      </form>
+    <div id="rvActions">
+      <button class="btnMain" id="rvPublishBtn" type="button">Pubblica</button>
+      <button id="rvCancelEditBtn" type="button">Annulla</button>
     </div>
   </div>
 
-  <script>
-    (() => {
-      const SUPABASE_URL = "https://rxfdutzvncdrudhavtco.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4ZmR1dHp2bmNkcnVkaGF2dGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNTI5MTUsImV4cCI6MjA4MDcyODkxNX0.fdAJXTybv5Kw9ggc_oGsJ8nVMvbpQbJpTiydoFXM0HE";
-
-      const { createClient } = supabase;
-      const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      const $ = (id) => document.getElementById(id);
-
-      // DOM
-      const postsContainer = $("posts");
-      const postModal = $("post-modal");
-      const postForm = $("post-form");
-      const openPostBtn = $("open-post-modal");
-      const closePostBtn = $("close-post-modal");
-
-      const creatorNameInput = $("creator-name");
-      const locationInput = $("location");
-      const contactInput = $("contact");
-      const descInput = $("description");
-      const dateInput = $("meeting-date");
-      const mapErrorEl = $("map-error");
-      const addressInput = $("address-search");
-      const addressSearchBtn = $("address-search-btn");
-      const addressErrorEl = $("address-error");
-
-      const radarToggle = $("radar-toggle");
-      const radarStatus = $("radar-status");
-      const radarNameInput = $("radar-name");
-      const dmInbox = $("dm-inbox");
-      const dmMessages = $("dm-messages");
-      const dmChatHeader = $("dm-chat-header");
-      const dmForm = $("dm-form");
-      const dmInput = $("dm-input");
-
-      // Utils
-      const escapeHtml = (str) =>
-        (str || "").replace(/[&<>"']/g, (c) =>
-          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
-        );
-
-      const formatDate = (iso) => {
-        const d = new Date(iso);
-        if (isNaN(d.getTime())) return iso || "";
-        return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
-      };
-
-      const formatTime = (iso) => {
-        const d = new Date(iso);
-        if (isNaN(d.getTime())) return "";
-        return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-      };
-
-      const debounce = (fn, ms) => {
-        let t = null;
-        return (...args) => {
-          clearTimeout(t);
-          t = setTimeout(() => fn(...args), ms);
-        };
-      };
-
-      // Date limits
-      const today = new Date();
-      const minDateStr = today.toISOString().split("T")[0];
-      const maxDate = new Date(today);
-      maxDate.setDate(maxDate.getDate() + 30);
-      const maxDateStr = maxDate.toISOString().split("T")[0];
-      dateInput.min = minDateStr;
-      dateInput.max = maxDateStr;
-
-      // Auth
-      let currentUserId = null;
-      async function ensureAuth() {
-        const { data: s } = await sb.auth.getSession();
-        if (s?.session?.user?.id) {
-          currentUserId = s.session.user.id;
-          return;
-        }
-        const { data, error } = await sb.auth.signInAnonymously();
-        if (error) {
-          console.error("Auth error:", error);
-          alert("Errore di connessione a Supabase (auth).");
-          return;
-        }
-        currentUserId = data?.user?.id || null;
-      }
-
-      // ====== COMMENTI: ownership locale ======
-      const OWN_COMMENTS_KEY = "cb_owned_comments_v1";
-      const readOwnMap = () => { try { return JSON.parse(localStorage.getItem(OWN_COMMENTS_KEY) || "{}"); } catch { return {}; } };
-      const writeOwnMap = (m) => localStorage.setItem(OWN_COMMENTS_KEY, JSON.stringify(m || {}));
-      const markOwn = (commentId, encounterId) => { const m = readOwnMap(); m[String(commentId)] = String(encounterId); writeOwnMap(m); };
-      const isOwn = (commentId, encounterId) => readOwnMap()[String(commentId)] === String(encounterId);
-
-      // ====== BACHECA ======
-      let postsCache = [];
-
-      const cleanupExpiredRows = (rows) => {
-        const now = new Date();
-        return (rows || []).filter((row) => {
-          if (!row.meeting_date) return true;
-          const d = new Date(row.meeting_date);
-          if (isNaN(d.getTime())) return true;
-          d.setDate(d.getDate() + 1);
-          return now <= d;
-        });
-      };
-
-      const embedLooksBroken = (err) => {
-        const m = (err?.message || "").toLowerCase();
-        return err?.status === 400 || m.includes("relationship") || m.includes("pgrst");
-      };
-
-      async function loadPosts() {
-        postsContainer.innerHTML = '<p class="empty-state">Caricamento bacheca...</p>';
-
-        const embed = await sb
-          .from("encounters")
-          .select("id, creator_name, address_text, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at, encounter_comments(id, encounter_id, author_name, text, created_at)")
-          .order("meeting_date", { ascending: true });
-
-        if (embed.error && embedLooksBroken(embed.error)) {
-          const enc = await sb
-            .from("encounters")
-            .select("id, creator_name, address_text, location_text, lat, lng, meeting_date, contact, description, owner_id, created_at")
-            .order("meeting_date", { ascending: true });
-
-          if (enc.error) {
-            console.error("Errore incontri:", enc.error);
-            postsContainer.innerHTML = '<p class="empty-state">Errore nel caricamento degli incontri.</p>';
-            return;
-          }
-
-          const rows = cleanupExpiredRows(enc.data || []);
-          const ids = rows.map((r) => r.id);
-
-          let byEnc = {};
-          if (ids.length) {
-            const com = await sb
-              .from("encounter_comments")
-              .select("id, encounter_id, author_name, text, created_at")
-              .in("encounter_id", ids)
-              .order("created_at", { ascending: true });
-
-            if (!com.error && com.data) {
-              byEnc = com.data.reduce((acc, c) => {
-                const k = String(c.encounter_id);
-                (acc[k] ||= []).push(c);
-                return acc;
-              }, {});
-            }
-          }
-
-          postsCache = rows.map((r) => ({
-            id: String(r.id),
-            creatorName: r.creator_name,
-            location: r.location_text,
-            address: r.address_text,
-            lat: r.lat,
-            lng: r.lng,
-            meetingDate: r.meeting_date,
-            contact: r.contact,
-            description: r.description,
-            ownerId: r.owner_id ? String(r.owner_id) : null,
-            comments: byEnc[String(r.id)] || [],
-          }));
-
-          renderPosts();
-          return;
-        }
-
-        if (embed.error) {
-          console.error("Errore incontri:", embed.error);
-          postsContainer.innerHTML = '<p class="empty-state">Errore nel caricamento degli incontri.</p>';
-          return;
-        }
-
-        const rows = cleanupExpiredRows(embed.data || []);
-        postsCache = rows.map((r) => ({
-          id: String(r.id),
-          creatorName: r.creator_name,
-          location: r.location_text,
-          address: r.address_text,
-          lat: r.lat,
-          lng: r.lng,
-          meetingDate: r.meeting_date,
-          contact: r.contact,
-          description: r.description,
-          ownerId: r.owner_id ? String(r.owner_id) : null,
-          comments: (r.encounter_comments || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
-        }));
-
-        renderPosts();
-      }
-      const loadPostsDebounced = debounce(loadPosts, 250);
-
-      function renderPosts() {
-        postsContainer.innerHTML = "";
-        if (!postsCache.length) {
-          postsContainer.innerHTML =
-            '<p class="empty-state">Nessun incontro creato. Clicca su "Crea un incontro" per aggiungerne uno.</p>';
-          return;
-        }
-
-        for (const post of postsCache) {
-          const card = document.createElement("article");
-          card.className = "post-card neon-card";
-          card.dataset.id = post.id;
-
-          const creatorName = post.creatorName || "Anonimo";
-          const addressLine = post.address || post.location || "";
-
-          const commentsHtml = (post.comments || []).map((c) => {
-            const canEdit = isOwn(c.id, post.id);
-            return (
-              '<div class="comment-item" data-comment-id="' + c.id + '">' +
-                '<span class="comment-author">' + escapeHtml(c.author_name || "Anonimo") + ":</span> " +
-                '<span class="comment-text">' + escapeHtml(c.text || "") + "</span>" +
-                (canEdit
-                  ? '<span class="comment-actions">' +
-                      '<button type="button" class="btn-tiny btn-comment-edit">Modifica</button>' +
-                      '<button type="button" class="btn-tiny btn-comment-delete">Cancella</button>' +
-                    "</span>"
-                  : "") +
-              "</div>"
-            );
-          }).join("");
-
-          card.innerHTML =
-            '<div class="post-header">' +
-              "<h3>" + escapeHtml(post.location || "") + "</h3>" +
-              '<span class="post-date">' + formatDate(post.meetingDate) + "</span>" +
-            "</div>" +
-            '<p class="post-meta">Creato da: <span>' + escapeHtml(creatorName) + "</span></p>" +
-            '<p class="post-address">Indirizzo / zona: <span>' + escapeHtml(addressLine) + "</span></p>" +
-            '<p class="post-desc">' + escapeHtml(post.description || "") + "</p>" +
-            '<p class="post-contact">Contatto: <span>' + escapeHtml(post.contact || "") + "</span></p>" +
-            '<div class="post-actions">' +
-              (post.ownerId === currentUserId
-                ? '<button type="button" class="btn btn-secondary btn-small btn-edit">Modifica</button>' +
-                  '<button type="button" class="btn btn-danger btn-small btn-delete">Cancella</button>'
-                : "") +
-            "</div>" +
-            '<div class="comments">' +
-              "<h4>Commenti</h4>" +
-              '<div class="comment-list">' +
-                (commentsHtml || '<p class="no-comments">Ancora nessun commento.</p>') +
-              "</div>" +
-              '<form class="comment-form">' +
-                '<input type="text" name="author" maxlength="30" placeholder="Il tuo nome (opzionale)" />' +
-                '<input type="text" name="text" maxlength="100" required placeholder="Scrivi un commento (max 100 caratteri)" />' +
-                '<button type="submit" class="btn btn-primary btn-small">Invia</button>' +
-              "</form>" +
-            "</div>";
-
-          postsContainer.appendChild(card);
-        }
-      }
-
-      async function insertComment(encounterId, author, text) {
-        const res = await sb
-          .from("encounter_comments")
-          .insert({ encounter_id: encounterId, author_name: author || null, text })
-          .select("id, encounter_id")
-          .maybeSingle();
-
-        if (res.error) {
-          console.error("Errore inserendo commento:", res.error);
-          alert("Errore nell'inserimento del commento.");
-          return false;
-        }
-        if (res.data?.id) markOwn(res.data.id, encounterId);
-        return true;
-      }
-
-      async function updateComment(commentId, encounterId, newText) {
-        if (!isOwn(commentId, encounterId)) return false;
-        const r = await sb.from("encounter_comments").update({ text: newText }).eq("id", commentId);
-        if (r.error) {
-          console.error("Errore update commento:", r.error);
-          alert("Errore nella modifica del commento.");
-          return false;
-        }
-        return true;
-      }
-
-      async function deleteComment(commentId, encounterId) {
-        if (!isOwn(commentId, encounterId)) return false;
-        const r = await sb.from("encounter_comments").delete().eq("id", commentId);
-        if (r.error) {
-          console.error("Errore delete commento:", r.error);
-          alert("Errore nella cancellazione del commento.");
-          return false;
-        }
-        return true;
-      }
-
-      // ====== INCONTRI: CANCELLA (con pulizia commenti) ======
-      async function deleteEncounter(encounterId) {
-        // 1) prova a cancellare prima i commenti (se non hai ON DELETE CASCADE)
-        const c = await sb.from("encounter_comments").delete().eq("encounter_id", encounterId);
-        if (c.error) console.warn("Delete comments warning:", c.error);
-
-        // 2) poi cancella l'incontro (solo se è tuo)
-        const r = await sb
-          .from("encounters")
-          .delete()
-          .eq("id", encounterId)
-          .eq("owner_id", currentUserId);
-
-        if (r.error) {
-          console.error("Errore delete incontro:", r.error);
-          alert("Errore nella cancellazione dell'incontro.");
-          return false;
-        }
-        return true;
-      }
-
-      // Click actions (incontri + commenti)
-      postsContainer.addEventListener("click", async (e) => {
-        const card = e.target.closest(".post-card");
-        if (!card) return;
-        const postId = card.dataset.id;
-
-        // ===== INCONTRI: MODIFICA / CANCELLA =====
-        if (e.target.classList.contains("btn-edit")) {
-          const post = postsCache.find((p) => p.id === postId);
-          if (!post) return;
-          if (post.ownerId !== currentUserId) return;
-          openModal(post);
-          return;
-        }
-
-        if (e.target.classList.contains("btn-delete")) {
-          const post = postsCache.find((p) => p.id === postId);
-          if (!post) return;
-          if (post.ownerId !== currentUserId) return;
-
-          if (!confirm("Vuoi cancellare questo incontro?")) return;
-
-          const ok = await deleteEncounter(postId);
-          if (ok) loadPostsDebounced();
-          return;
-        }
-
-        // ===== COMMENTI: MODIFICA / CANCELLA =====
-        if (e.target.classList.contains("btn-comment-edit")) {
-          const item = e.target.closest(".comment-item");
-          if (!item) return;
-          const commentId = item.dataset.commentId;
-
-          const post = postsCache.find((p) => p.id === postId);
-          const c = post?.comments?.find((x) => String(x.id) === String(commentId));
-          if (!c) return;
-          if (!isOwn(commentId, postId)) return;
-
-          const nuovo = prompt("Modifica il commento:", c.text || "");
-          if (nuovo == null) return;
-          const t = nuovo.trim();
-          if (!t) return alert("Il commento non può essere vuoto.");
-          if (t.length > 100) return alert("Commento troppo lungo (max 100 caratteri).");
-
-          const ok = await updateComment(commentId, postId, t);
-          if (ok) loadPostsDebounced();
-          return;
-        }
-
-        if (e.target.classList.contains("btn-comment-delete")) {
-          const item = e.target.closest(".comment-item");
-          if (!item) return;
-          const commentId = item.dataset.commentId;
-
-          if (!isOwn(commentId, postId)) return;
-          if (!confirm("Vuoi cancellare questo commento?")) return;
-
-          const ok = await deleteComment(commentId, postId);
-          if (ok) loadPostsDebounced();
-          return;
-        }
-      });
-
-      postsContainer.addEventListener("submit", async (e) => {
-        if (!e.target.classList.contains("comment-form")) return;
-        e.preventDefault();
-
-        const form = e.target;
-        const card = form.closest(".post-card");
-        if (!card) return;
-        const postId = card.dataset.id;
-
-        const author = (form.author.value || "").trim();
-        const text = (form.text.value || "").trim();
-
-        if (!text) return;
-        if (text.length > 100) return alert("Commento troppo lungo (max 100 caratteri).");
-
-        const ok = await insertComment(postId, author, text);
-        if (!ok) return;
-
-        form.text.value = "";
-        loadPostsDebounced();
-      });
-
-      // ====== MAPPA INCONTRO ======
-      let meetingMap = null, meetingMarker = null, selectedLatLng = null, meetingMapInit = false;
-
-      const clearFormErrors = () => {
-        postForm.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
-        postForm.querySelectorAll(".field-invalid").forEach((el) => el.classList.remove("field-invalid"));
-        mapErrorEl.textContent = "";
-        addressErrorEl.textContent = "";
-      };
-
-      const showError = (inputEl, msg) => {
-        const field = inputEl.closest(".field");
-        if (!field) return;
-        const errEl = field.querySelector(".field-error");
-        if (errEl) errEl.textContent = msg || "";
-        inputEl.classList.add("field-invalid");
-      };
-
-      function initMeetingMap() {
-        if (meetingMapInit) return;
-        meetingMap = L.map("meeting-map").setView([45.4, 10.99], 6);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
-        }).addTo(meetingMap);
-
-        meetingMap.on("click", (e) => {
-          selectedLatLng = e.latlng;
-          if (meetingMarker) meetingMap.removeLayer(meetingMarker);
-          meetingMarker = L.marker(selectedLatLng).addTo(meetingMap);
-          mapErrorEl.textContent = "";
-        });
-
-        meetingMap.whenReady(() => meetingMap.invalidateSize());
-        meetingMapInit = true;
-      }
-
-      async function geocodeAndSetMarker() {
-        addressErrorEl.textContent = "";
-        const addr = addressInput.value.trim();
-        if (!addr) { addressErrorEl.textContent = "Inserisci un indirizzo."; return; }
-
-        try {
-          const url = "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(addr) + "&limit=1";
-          const resp = await fetch(url, { headers: { Accept: "application/json" } });
-          if (!resp.ok) throw new Error("HTTP " + resp.status);
-          const data = await resp.json();
-          if (!data || !data.length) { addressErrorEl.textContent = "Indirizzo non trovato. Prova a essere più preciso."; return; }
-
-          const best = data[0];
-          const lat = parseFloat(best.lat);
-          const lng = parseFloat(best.lon);
-          if (Number.isNaN(lat) || Number.isNaN(lng)) { addressErrorEl.textContent = "Risposta non valida dal servizio mappe."; return; }
-
-          selectedLatLng = { lat, lng };
-          if (meetingMap) {
-            if (meetingMarker) meetingMap.removeLayer(meetingMarker);
-            meetingMarker = L.marker(selectedLatLng).addTo(meetingMap);
-            meetingMap.setView(selectedLatLng, 14);
-          }
-          if (best.display_name) addressInput.value = best.display_name.slice(0, 200);
-          if (!locationInput.value.trim() && best.display_name) locationInput.value = best.display_name.slice(0, 120);
-        } catch (err) {
-          console.error("Geocode error:", err);
-          addressErrorEl.textContent = "Errore nella ricerca indirizzo. Riprova più tardi.";
-        }
-      }
-
-      addressSearchBtn.addEventListener("click", geocodeAndSetMarker);
-
-      function openModal(editPost) {
-        clearFormErrors();
-        postForm.reset();
-        delete postForm.dataset.editingId;
-        selectedLatLng = null;
-
-        if (editPost) {
-          creatorNameInput.value = editPost.creatorName || "";
-          locationInput.value = editPost.location || "";
-          contactInput.value = editPost.contact || "";
-          descInput.value = editPost.description || "";
-          dateInput.value = editPost.meetingDate || "";
-          addressInput.value = editPost.address || "";
-          postForm.dataset.editingId = editPost.id;
-
-          if (editPost.lat != null && editPost.lng != null) {
-            selectedLatLng = { lat: editPost.lat, lng: editPost.lng };
-          }
-        } else {
-          addressInput.value = "";
-          dateInput.value = "";
-        }
-
-        postModal.classList.add("open");
-        postModal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-
-        initMeetingMap();
-        setTimeout(() => {
-          meetingMap && meetingMap.invalidateSize();
-          if (meetingMarker) { meetingMap.removeLayer(meetingMarker); meetingMarker = null; }
-          if (selectedLatLng) {
-            meetingMarker = L.marker(selectedLatLng).addTo(meetingMap);
-            meetingMap.setView(selectedLatLng, 10);
-          } else {
-            meetingMap.setView([45.4, 10.99], 6);
-          }
-        }, 200);
-      }
-
-      function closeModal() {
-        postModal.classList.remove("open");
-        postModal.setAttribute("aria-hidden", "true");
-        document.body.style.overflow = "";
-        clearFormErrors();
-        delete postForm.dataset.editingId;
-        selectedLatLng = null;
-      }
-
-      openPostBtn.addEventListener("click", () => openModal(null));
-      closePostBtn.addEventListener("click", closeModal);
-      postModal.addEventListener("click", (e) => { if (e.target === postModal) closeModal(); });
-
-      postForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        clearFormErrors();
-
-        const creatorVal = creatorNameInput.value.trim();
-        const locVal = locationInput.value.trim();
-        const contactVal = contactInput.value.trim();
-        const descVal = descInput.value.trim();
-        const dateVal = dateInput.value;
-        const addrVal = addressInput.value.trim();
-
-        let valid = true;
-        if (!creatorVal) { showError(creatorNameInput, "Campo obbligatorio"); valid = false; }
-        if (!locVal) { showError(locationInput, "Campo obbligatorio"); valid = false; }
-        if (!contactVal) { showError(contactInput, "Campo obbligatorio"); valid = false; }
-        if (!dateVal) { showError(dateInput, "Campo obbligatorio"); valid = false; }
-        else if (dateVal < minDateStr || dateVal > maxDateStr) { showError(dateInput, "La data deve essere entro i prossimi 30 giorni"); valid = false; }
-        if (descVal.length > 200) { showError(descInput, "Max 200 caratteri"); valid = false; }
-        if (!selectedLatLng) { mapErrorEl.textContent = "Scegli una posizione sulla mappa o usa la ricerca indirizzo."; valid = false; }
-        if (!valid) return;
-
-        const payload = {
-          owner_id: currentUserId,
-          creator_name: creatorVal,
-          location_text: locVal,
-          address_text: addrVal || null,
-          contact: contactVal,
-          description: descVal,
-          meeting_date: dateVal,
-          lat: selectedLatLng.lat,
-          lng: selectedLatLng.lng,
-        };
-
-        const editingId = postForm.dataset.editingId;
-        const res = editingId
-          ? await sb.from("encounters").update(payload).eq("id", editingId).eq("owner_id", currentUserId)
-          : await sb.from("encounters").insert(payload);
-
-        if (res.error) {
-          console.error("Errore salvataggio incontro:", res.error);
-          alert("Errore nel salvataggio dell'incontro.");
-          return;
-        }
-
-        closeModal();
-        loadPostsDebounced();
-      });
-
-      // ====== RADAR ======
-      const RADAR_ON_KEY = "camperbuddy_radar_on";
-      const RADAR_NAME_KEY = "camperbuddy_radar_name";
-      const RADAR_LAST_LAT = "camperbuddy_radar_last_lat";
-      const RADAR_LAST_LNG = "camperbuddy_radar_last_lng";
-
-      let radarOn = localStorage.getItem(RADAR_ON_KEY) === "1";
-      const savedName = localStorage.getItem(RADAR_NAME_KEY);
-      if (savedName) radarNameInput.value = savedName;
-
-      function setRadarUI(on, extra) {
-        radarOn = on;
-        radarToggle.textContent = on ? "Spegni radar" : "Accendi radar";
-        radarStatus.textContent = on ? ("Radar attivo" + (extra ? " — " + extra : "")) : "Radar spento";
-        localStorage.setItem(RADAR_ON_KEY, on ? "1" : "0");
-      }
-      setRadarUI(radarOn, radarOn ? "clicca sulla mappa per aggiornare posizione" : "");
-
-      let radarMap = null, radarMapInit = false;
-      const radarUsersByRowId = {};
-      const radarMarkers = {};
-      let watchId = null;
-
-      const dmThreads = {};
-      let activeDmUserId = null;
-      let activeDmName = null;
-
-      function initRadarMap() {
-        if (radarMapInit) return;
-        radarMap = L.map("radar-map").setView([45.4, 10.99], 5);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a>',
-        }).addTo(radarMap);
-
-        radarMap.on("click", async (e) => {
-          if (!radarOn) {
-            alert("Accendi il radar prima, poi clicca sulla mappa per impostare la posizione.");
-            return;
-          }
-          await setRadarLocation(e.latlng.lat, e.latlng.lng, "posizione aggiornata (click)");
-        });
-
-        radarMap.whenReady(() => radarMap.invalidateSize());
-        setTimeout(() => radarMap.invalidateSize(), 600);
-        radarMapInit = true;
-      }
-
-      function clearRadarMarkers() {
-        if (!radarMap) return;
-        for (const k in radarMarkers) {
-          radarMap.removeLayer(radarMarkers[k]);
-          delete radarMarkers[k];
-        }
-      }
-
-      function renderRadarUsers() {
-        if (!radarMap) return;
-        clearRadarMarkers();
-
-        const users = Object.values(radarUsersByRowId)
-          .filter((u) => u?.active && u.lat != null && u.lng != null);
-
-        for (const u of users) {
-          const marker = L.marker([u.lat, u.lng]).addTo(radarMap);
-          const rawName = u.display_name || "Camperista";
-          const safeName = escapeHtml(rawName);
-
-          marker.bindTooltip(safeName, {
-            permanent: true,
-            direction: "top",
-            offset: [0, -10],
-            className: "radar-name-tooltip",
-          });
-
-          marker.bindPopup("<strong>" + safeName + "</strong><br><em>Clicca per chattare</em>");
-          marker.on("click", () => u.user_id && openDmChat(u.user_id, rawName));
-
-          radarMarkers[u.id] = marker;
-        }
-
-        if (users.length) {
-          const self = users.find(u => u.user_id === currentUserId) || users[0];
-          radarMap.setView([self.lat, self.lng], 7);
-        }
-      }
-
-      function getLastCoordsFromStorage() {
-        const lat = parseFloat(localStorage.getItem(RADAR_LAST_LAT) || "");
-        const lng = parseFloat(localStorage.getItem(RADAR_LAST_LNG) || "");
-        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-        return null;
-      }
-
-      function storeLastCoords(lat, lng) {
-        localStorage.setItem(RADAR_LAST_LAT, String(lat));
-        localStorage.setItem(RADAR_LAST_LNG, String(lng));
-      }
-
-      let lastPosUpdateAt = 0;
-      async function setRadarLocation(lat, lng, label) {
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-        storeLastCoords(lat, lng);
-
-        const myRow = Object.values(radarUsersByRowId).find(u => u.user_id === currentUserId);
-        if (myRow) {
-          myRow.lat = lat; myRow.lng = lng; myRow.active = true;
-        }
-
-        renderRadarUsers();
-        setRadarUI(true, label || "posizione aggiornata");
-
-        const now = Date.now();
-        if (now - lastPosUpdateAt < 12000) return;
-        lastPosUpdateAt = now;
-
-        const r = await sb
-          .from("radar_users")
-          .update({ lat, lng, last_seen: new Date().toISOString(), active: true })
-          .eq("user_id", currentUserId);
-
-        if (r.error) console.warn("Update posizione radar fallito:", r.error);
-      }
-
-      async function tryGetGeolocationOnce(timeoutMs = 6000) {
-        if (!("geolocation" in navigator)) return null;
-        try {
-          const pos = await new Promise((resolve) => {
-            navigator.geolocation.getCurrentPosition(
-              (p) => resolve(p),
-              () => resolve(null),
-              { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 20000 }
-            );
-          });
-          if (!pos) return null;
-          return { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        } catch {
-          return null;
-        }
-      }
-
-      function startWatchPosition() {
-        if (!("geolocation" in navigator)) return;
-        if (watchId != null) return;
-
-        watchId = navigator.geolocation.watchPosition(
-          (p) => {
-            if (!radarOn) return;
-            const lat = p.coords.latitude;
-            const lng = p.coords.longitude;
-            setRadarLocation(lat, lng, "posizione aggiornata (GPS)");
-          },
-          () => {},
-          { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
-        );
-      }
-
-      function stopWatchPosition() {
-        if (watchId != null && "geolocation" in navigator) {
-          navigator.geolocation.clearWatch(watchId);
-        }
-        watchId = null;
-      }
-
-      async function loadRadarInitial() {
-        const users = await sb
-          .from("radar_users")
-          .select("id, user_id, display_name, lat, lng, active")
-          .eq("active", true);
-
-        if (!users.error && users.data) {
-          for (const u of users.data) radarUsersByRowId[u.id] = u;
-        }
-
-        renderRadarUsers();
-      }
-
-      function subscribeRealtime() {
-        sb.channel("cb-radar-users")
-          .on("postgres_changes", { event: "*", schema: "public", table: "radar_users" }, (payload) => {
-            const row = payload.new || payload.old;
-            if (!row) return;
-            if (payload.eventType === "DELETE") delete radarUsersByRowId[row.id];
-            else radarUsersByRowId[row.id] = row;
-
-            renderRadarUsers();
-          })
-          .subscribe();
-      }
-
-      // ====== DM ======
-      function renderDmInbox() {
-        dmInbox.innerHTML = "";
-        const entries = Object.entries(dmThreads).sort(([, a], [, b]) => {
-          const ta = a.lastAt ? new Date(a.lastAt).getTime() : 0;
-          const tb = b.lastAt ? new Date(b.lastAt).getTime() : 0;
-          return tb - ta;
-        });
-
-        if (!entries.length) {
-          dmInbox.innerHTML = '<p class="dm-inbox-empty">Quando qualcuno ti scrive dal radar lo vedi qui.</p>';
-          return;
-        }
-
-        for (const [otherId, t] of entries) {
-          const div = document.createElement("div");
-          div.className = "dm-inbox-item" + (t.unread > 0 ? " unread" : "");
-          div.dataset.otherId = otherId;
-          div.innerHTML =
-            '<span class="dm-inbox-name">' +
-              escapeHtml(t.name || "Camperista") +
-              (t.unread > 0 ? " (" + t.unread + ")" : "") +
-            "</span>" +
-            '<span class="dm-inbox-preview">' + escapeHtml(t.lastText || "") + "</span>";
-          dmInbox.appendChild(div);
-        }
-      }
-
-      function appendDmMessage(row) {
-        const isSelf = row.sender_id === currentUserId;
-        const div = document.createElement("div");
-        div.className = "dm-message" + (isSelf ? " self" : "");
-        const name = isSelf ? "Tu" : (row.sender_name || activeDmName || "Altro");
-        const time = formatTime(row.created_at);
-
-        div.innerHTML =
-          '<span class="dm-author">' + escapeHtml(name) + ":</span> " +
-          '<span class="dm-text">' + escapeHtml(row.text || "") + "</span>" +
-          (time ? '<span class="dm-time">' + escapeHtml(time) + "</span>" : "");
-
-        if (dmMessages.firstElementChild?.classList?.contains("dm-empty")) dmMessages.innerHTML = "";
-        dmMessages.appendChild(div);
-        dmMessages.scrollTop = dmMessages.scrollHeight;
-      }
-
-      async function loadDmHistory(otherId) {
-        dmMessages.innerHTML = '<p class="dm-empty">Caricamento conversazione...</p>';
-
-        const orFilter =
-          `and(sender_id.eq.${currentUserId},receiver_id.eq.${otherId}),` +
-          `and(sender_id.eq.${otherId},receiver_id.eq.${currentUserId})`;
-
-        const r = await sb
-          .from("radar_dm_messages")
-          .select("sender_id, receiver_id, sender_name, text, created_at")
-          .or(orFilter)
-          .order("created_at", { ascending: true })
-          .limit(120);
-
-        if (r.error) {
-          console.error("Errore DM history:", r.error);
-          dmMessages.innerHTML = '<p class="dm-empty">Errore nel caricamento della chat.</p>';
-          return;
-        }
-
-        const data = r.data || [];
-        if (!data.length) {
-          dmMessages.innerHTML = '<p class="dm-empty">Nessun messaggio. Inizia tu la conversazione!</p>';
-          return;
-        }
-
-        dmMessages.innerHTML = "";
-        for (const row of data) appendDmMessage(row);
-      }
-
-      async function openDmChat(otherId, displayName) {
-        if (!otherId || otherId === currentUserId) return;
-        activeDmUserId = otherId;
-        activeDmName = displayName || "Camperista";
-        dmChatHeader.innerHTML = 'Chat con <span>' + escapeHtml(activeDmName) + "</span>";
-
-        if (dmThreads[otherId]) { dmThreads[otherId].unread = 0; renderDmInbox(); }
-
-        await loadDmHistory(otherId);
-        dmInput.focus();
-      }
-
-      dmInbox.addEventListener("click", (e) => {
-        const item = e.target.closest(".dm-inbox-item");
-        if (!item) return;
-        const otherId = item.dataset.otherId;
-        openDmChat(otherId, dmThreads[otherId]?.name || "Camperista");
-      });
-
-      dmForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const text = (dmInput.value || "").trim();
-        if (!text) return;
-
-        if (!activeDmUserId) return alert("Seleziona prima un utente dal radar o dalla lista messaggi.");
-        if (!radarOn) return alert("Per usare la chat privata devi avere il radar attivo.");
-
-        const senderName = (radarNameInput.value || "").trim() || "Tu";
-
-        const r = await sb.from("radar_dm_messages").insert({
-          sender_id: currentUserId,
-          receiver_id: activeDmUserId,
-          sender_name: senderName,
-          text,
-        });
-
-        if (r.error) {
-          console.error("Errore invio DM:", r.error);
-          alert("Errore nell'invio del messaggio privato.");
-          return;
-        }
-
-        dmInput.value = "";
-        appendDmMessage({ sender_id: currentUserId, sender_name: senderName, text, created_at: new Date().toISOString() });
-
-        dmThreads[activeDmUserId] ||= { name: activeDmName, lastText: "", lastAt: null, unread: 0 };
-        dmThreads[activeDmUserId].lastText = text;
-        dmThreads[activeDmUserId].lastAt = new Date().toISOString();
-        renderDmInbox();
-      });
-
-      // Radar: ON/OFF (con fallback coords)
-      radarToggle.addEventListener("click", async () => {
-        initRadarMap();
-
-        if (!radarOn) {
-          const name = radarNameInput.value.trim();
-          if (!name) return alert("Per attivare il radar inserisci il tuo nome.");
-          localStorage.setItem(RADAR_NAME_KEY, name);
-
-          let coords = await tryGetGeolocationOnce(6000);
-          if (!coords) coords = getLastCoordsFromStorage();
-          if (!coords) {
-            const c = radarMap.getCenter();
-            coords = { lat: c.lat, lng: c.lng };
-          }
-
-          const up = await sb.from("radar_users").upsert(
-            {
-              user_id: currentUserId,
-              display_name: name,
-              lat: coords.lat,
-              lng: coords.lng,
-              active: true,
-              last_seen: new Date().toISOString(),
-            },
-            { onConflict: "user_id" }
-          ).select("id, user_id, display_name, lat, lng, active").maybeSingle();
-
-          if (up.error) {
-            console.error("Errore attiva radar:", up.error);
-            alert("Errore nell'attivazione del radar.");
-            return;
-          }
-
-          storeLastCoords(coords.lat, coords.lng);
-          if (up.data) radarUsersByRowId[up.data.id] = up.data;
-
-          setRadarUI(true, "sei visibile — clicca sulla mappa per correggere posizione");
-          renderRadarUsers();
-          startWatchPosition();
-          return;
-        }
-
-        stopWatchPosition();
-        const off = await sb.from("radar_users")
-          .update({ active: false, last_seen: new Date().toISOString() })
-          .eq("user_id", currentUserId);
-
-        if (off.error) {
-          console.error("Errore spegni radar:", off.error);
-          alert("Errore nello spegnimento del radar.");
-          return;
-        }
-
-        setRadarUI(false);
-      });
-
-      radarNameInput.addEventListener("input", debounce(async () => {
-        const name = radarNameInput.value.trim();
-        localStorage.setItem(RADAR_NAME_KEY, name);
-
-        if (!radarOn) return;
-
-        const r = await sb.from("radar_users")
-          .update({ display_name: name, last_seen: new Date().toISOString() })
-          .eq("user_id", currentUserId);
-
-        if (r.error) console.warn("Update nome radar fallito:", r.error);
-
-        const myRow = Object.values(radarUsersByRowId).find(u => u.user_id === currentUserId);
-        if (myRow) myRow.display_name = name;
-        renderRadarUsers();
-      }, 400));
-
-      function subscribeAllRealtime() {
-        sb.channel("cb-bacheca")
-          .on("postgres_changes", { event: "*", schema: "public", table: "encounters" }, () => loadPostsDebounced())
-          .on("postgres_changes", { event: "*", schema: "public", table: "encounter_comments" }, () => loadPostsDebounced())
-          .subscribe();
-
-        subscribeRealtime();
-      }
-
-      const invalidateAllMaps = debounce(() => {
-        meetingMap && meetingMap.invalidateSize();
-        radarMap && radarMap.invalidateSize();
-      }, 150);
-
-      window.addEventListener("load", invalidateAllMaps);
-      window.addEventListener("resize", invalidateAllMaps);
-      window.addEventListener("orientationchange", () => setTimeout(invalidateAllMaps, 250));
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) invalidateAllMaps(); });
-
-      // INIT
-      (async () => {
-        await ensureAuth();
-        if (!currentUserId) return;
-
-        initRadarMap();
-        await loadPosts();
-        await loadRadarInitial();
-        subscribeAllRealtime();
-        invalidateAllMaps();
-
-        if (radarOn) {
-          const coords = await tryGetGeolocationOnce(2500);
-          if (coords) setRadarLocation(coords.lat, coords.lng, "posizione aggiornata (reconnect)");
-          startWatchPosition();
-        }
-      })();
-    })();
-  </script>
+  <div id="rvList"></div>
+</div>
+
+<script>
+/* ===== SUPABASE ===== */
+const sb = supabase.createClient(
+  "https://knxmhhdzjnchafkigjzo.supabase.co",
+  "sb_publishable_9xJNnzDuhwXWx76SHb2ILQ_PWsLDhvD"
+);
+
+let user=null, profiles={}, chats={}, activePeer=null;
+let map=null, myMarker=null, geoWatch=null;
+
+const RADAR_KEY="cb_radar_started";
+const RADAR_DURATION=86400000;
+let radarOn=false;
+
+let pickMode=false;
+let pickedLatLng=null;
+let editingRVId=null;
+
+const NICK_KEY="cb_nickname";
+
+/* ===== UI helpers ===== */
+const $ = (id)=>document.getElementById(id);
+function safeName(uid){ return profiles[uid]?.display_name || profiles[uid]?.username || uid; }
+
+function toLocalInputValue(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes());
+}
+
+async function reverseGeocode(lat,lng){
+  try{
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+    const res = await fetch(url, { headers: { "Accept":"application/json" } });
+    const js = await res.json();
+    return js?.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  }catch(e){
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  }
+}
+
+function getNick(){
+  return (localStorage.getItem(NICK_KEY) || "").trim();
+}
+function setNick(n){
+  localStorage.setItem(NICK_KEY, (n||"").trim());
+}
+
+/* ===== Nick UI (prima volta sì, poi no) ===== */
+function syncNickUI(){
+  const nick = getNick();
+  const nickRow = $("nickRow");
+  const nickDispRow = $("nickDisplayRow");
+
+  if(!nick){
+    nickRow.style.display = "";
+    nickDispRow.style.display = "none";
+    $("nickname").value = "";
+  }else{
+    nickRow.style.display = "none";
+    nickDispRow.style.display = "flex";
+    $("nickDisplay").innerText = nick;
+    $("nickname").value = nick; // utile se premi Cambia e poi torni
+  }
+}
+
+$("changeNickBtn").onclick = ()=>{
+  $("nickRow").style.display = "";
+  $("nickDisplayRow").style.display = "none";
+  $("nickname").focus();
+};
+
+/* ===== AUTH ===== */
+async function login(){
+  const email = ($("email").value || "").trim();
+  const password = $("password").value;
+
+  // ✅ se nick già salvato, non serve reinserirlo
+  let nickname = ($("nickname").value || "").trim();
+  if(!nickname) nickname = getNick();
+
+  // Se non c'è ancora (prima volta), lo richiediamo
+  if(!nickname) return alert("Inserisci il Nick name (solo la prima volta).");
+  if(!email || !password) return alert("Inserisci email e password.");
+
+  setNick(nickname);
+
+  const { error } = await sb.auth.signInWithPassword({email,password});
+  if(error) alert(error.message);
+  else location.reload();
+}
+
+async function signup(){
+  const email = ($("email").value || "").trim();
+  const password = $("password").value;
+
+  let nickname = ($("nickname").value || "").trim();
+  if(!nickname) nickname = getNick();
+
+  if(!nickname) return alert("Inserisci il Nick name.");
+  if(!email || !password) return alert("Inserisci email e password.");
+
+  setNick(nickname);
+
+  const { error } = await sb.auth.signUp({email,password});
+  if(error) alert(error.message);
+  else alert("Registrato. Ora fai login.");
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+/* ===== START ===== */
+sb.auth.getSession().then(async({data})=>{
+  // All'avvio: aggiorna UI nick (se già c'è, non lo chiede più)
+  syncNickUI();
+
+  if(data.session){
+    user = data.session.user;
+    $("authForm").style.display="none";
+    $("userInfo").style.display="block";
+    $("userEmail").innerText = user.email;
+
+    await ensureMyNickname();
+    await start();
+  }else{
+    initMapEmpty();
+    hookRVUI();
+  }
+});
+
+async function ensureMyNickname(){
+  if(!user) return;
+
+  // 1) Se ho nick in localStorage → lo scrivo/aggiorno su profiles
+  let nick = getNick();
+
+  // 2) Se NON ho nick in localStorage → provo a leggerlo da profiles e salvarlo (così da ora in poi non lo chiede)
+  if(!nick){
+    const { data, error } = await sb.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
+    if(!error && data?.display_name){
+      setNick(data.display_name);
+      syncNickUI();
+      return;
+    }
+
+    // 3) Se anche su profiles non c'è → lo chiedo UNA VOLTA (prompt) e lo salvo
+    const suggested = (user.email || "").split("@")[0] || "Camperista";
+    const chosen = (prompt("Scegli un Nick name (solo la prima volta):", suggested) || "").trim() || suggested;
+    setNick(chosen);
+    nick = chosen;
+    syncNickUI();
+  }
+
+  // upsert sul tuo profilo
+  const { error: upErr } = await sb.from("profiles").upsert(
+    { user_id: user.id, display_name: nick },
+    { onConflict: "user_id" }
+  );
+
+  if(upErr) console.warn("profiles upsert:", upErr.message);
+}
+
+async function start(){
+  await loadProfiles();
+  initMap();
+  restoreRadarState();
+  startPolling();
+  hookRVUI();
+  await loadRV();
+}
+
+/* ===== PROFILES ===== */
+async function loadProfiles(){
+  const { data, error } = await sb.from("profiles").select("*");
+  if(error){ console.warn(error.message); return; }
+  profiles={};
+  (data||[]).forEach(p=>profiles[p.user_id]=p);
+
+  // Se sono loggato e non ho nick in localStorage ma ce l'ho nel profilo → salvalo
+  if(user && !getNick() && profiles[user.id]?.display_name){
+    setNick(profiles[user.id].display_name);
+    syncNickUI();
+  }
+}
+
+/* ===== MAP ===== */
+function initMapEmpty(){
+  map=L.map("map").setView([45.4,11],6);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+  setTimeout(()=>map.invalidateSize(true),400);
+}
+function initMap(){
+  map=L.map("map").setView([45.4,11],6);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+  setTimeout(()=>map.invalidateSize(true),400);
+
+  Object.values(profiles).forEach(u=>{
+    if(!u?.lat || !u?.lng) return;
+    if(u.user_id===user.id) return;
+    const m=L.marker([u.lat,u.lng]).addTo(map).bindPopup(u.display_name||u.username||u.user_id);
+    m.on("click",()=>openChat(u.user_id));
+  });
+
+  map.on("click", async (e)=>{
+    if(!pickMode) return;
+    pickedLatLng = e.latlng;
+
+    const addr = await reverseGeocode(pickedLatLng.lat, pickedLatLng.lng);
+    $("rvAddress").value = addr;
+
+    pickMode=false;
+    $("rvPickBtn").textContent="📌 Seleziona da mappa";
+  });
+}
+
+/* ===== RADAR ===== */
+function restoreRadarState(){
+  const t=localStorage.getItem(RADAR_KEY);
+  if(t && Date.now()-Number(t) < RADAR_DURATION){
+    radarOn=true;
+    $("radarBtn").innerText="🟢 Radar ON";
+    startGeo();
+  }else{
+    radarOn=false;
+    $("radarBtn").innerText="🔴 Radar OFF";
+  }
+}
+
+function toggleRadar(){
+  if(!user) return alert("Devi essere loggato.");
+  if(radarOn){
+    radarOn=false;
+    localStorage.removeItem(RADAR_KEY);
+    if(myMarker) map.removeLayer(myMarker);
+    if(geoWatch) navigator.geolocation.clearWatch(geoWatch);
+    geoWatch=null;
+  }else{
+    radarOn=true;
+    localStorage.setItem(RADAR_KEY, String(Date.now()));
+    startGeo();
+  }
+  $("radarBtn").innerText = radarOn ? "🟢 Radar ON" : "🔴 Radar OFF";
+}
+
+function startGeo(){
+  if(!navigator.geolocation) return;
+  geoWatch = navigator.geolocation.watchPosition(async p=>{
+    const {latitude:lat,longitude:lng}=p.coords;
+    if(!myMarker){
+      myMarker=L.circleMarker([lat,lng],{radius:8,color:"#ff3333",fillColor:"#ff0000",fillOpacity:1}).addTo(map);
+    }else{
+      myMarker.setLatLng([lat,lng]);
+    }
+    await sb.from("profiles").update({lat,lng}).eq("user_id",user.id);
+  });
+}
+
+/* ===== CHAT ===== */
+function openChat(pid){
+  activePeer=pid;
+  chats[pid]=chats[pid]||[];
+  renderChatList();
+  renderMessages();
+}
+
+function deleteChat(pid){
+  if(!confirm("Cancellare chat?")) return;
+  delete chats[pid];
+  if(activePeer===pid) activePeer=null;
+  renderChatList();
+  renderMessages();
+}
+
+function renderChatList(){
+  $("chatList").innerHTML="";
+  Object.keys(chats).forEach(pid=>{
+    const c=chats[pid];
+    const el=document.createElement("div");
+    el.className="chatItem"+(pid===activePeer?" active":"");
+    el.onclick=()=>openChat(pid);
+    el.innerHTML=`<div class="chatText"><div class="chatName">${safeName(pid)}</div><div class="chatLast">${c[c.length-1]?.body||""}</div></div>`;
+    const d=document.createElement("div");
+    d.className="chatDel"; d.innerText="🗑";
+    d.onclick=e=>{e.stopPropagation();deleteChat(pid)};
+    el.appendChild(d);
+    $("chatList").appendChild(el);
+  });
+}
+
+function renderMessages(){
+  $("messages").innerHTML="";
+  if(!activePeer){
+    $("chatHeader").innerText="Seleziona una chat";
+    $("msgInput").disabled=true;
+    $("sendBtn").disabled=true;
+    return;
+  }
+  $("chatHeader").innerText=safeName(activePeer);
+  $("msgInput").disabled=false;
+  $("sendBtn").disabled=false;
+
+  (chats[activePeer]||[]).forEach(m=>{
+    const d=document.createElement("div");
+    d.className="msg "+(m.sender===user.id?"me":"them");
+    d.innerText=m.body;
+    $("messages").appendChild(d);
+  });
+  $("messages").scrollTop=$("messages").scrollHeight;
+}
+
+async function sendMsg(){
+  const t=$("msgInput").value.trim();
+  if(!t || !activePeer) return;
+  const m={sender:user.id,receiver:activePeer,body:t,created_at:new Date().toISOString()};
+  chats[activePeer].push(m);
+  renderMessages(); renderChatList();
+  $("msgInput").value="";
+  await sb.from("messages").insert(m);
+}
+
+function startPolling(){
+  setInterval(async ()=>{
+    if(!user) return;
+    const {data} = await sb.from("messages").select("*").eq("receiver",user.id);
+    if(!data) return;
+    data.forEach(m=>{
+      chats[m.sender]=chats[m.sender]||[];
+      if(chats[m.sender].some(x=>x.created_at===m.created_at)) return;
+      chats[m.sender].push(m);
+      renderChatList();
+      if(activePeer===m.sender) renderMessages();
+    });
+  },3000);
+}
+
+/* ===== RENDEZ-VOUS UI + DB ===== */
+function hookRVUI(){
+  $("rvToggle").onclick=()=> $("rvPanel").classList.toggle("open");
+  $("rvClose").onclick=()=> $("rvPanel").classList.remove("open");
+
+  $("rvPickBtn").onclick=()=>{
+    if(!user) return alert("Devi essere loggato.");
+    pickMode = !pickMode;
+    $("rvPickBtn").textContent = pickMode ? "🟣 Clicca sulla mappa..." : "📌 Seleziona da mappa";
+  };
+
+  $("rvPublishBtn").onclick=publishOrUpdateRV;
+  $("rvCancelEditBtn").onclick=()=>{
+    editingRVId=null;
+    $("rvPublishBtn").textContent="Pubblica";
+    $("rvCancelEditBtn").style.display="none";
+    $("rvAddress").value="";
+    $("rvContact").value="";
+    $("rvText").value="";
+    $("rvStart").value="";
+    $("rvEnd").value="";
+    pickedLatLng=null;
+  };
+}
+
+async function publishOrUpdateRV(){
+  if(!user) return alert("Devi essere loggato.");
+
+  const address = $("rvAddress").value.trim();
+  const contact = $("rvContact").value.trim();
+  const text = $("rvText").value.trim();
+  const startLocal = ($("rvStart").value||"").trim();
+  const endLocal = ($("rvEnd").value||"").trim();
+
+  if(!address || !contact || !text || !startLocal || !endLocal) return alert("Compila tutto (indirizzo, contatto, messaggio, DAL e AL).");
+  if(text.length>200) return alert("Max 200 caratteri.");
+  const startIso = new Date(startLocal).toISOString();
+  const endIso = new Date(endLocal).toISOString();
+  if(new Date(endIso) <= new Date(startIso)) return alert("La data AL deve essere dopo la data DAL.");
+
+  // username = nickname (display_name). fallback: localStorage nick. ultima spiaggia: email.
+  const myNick = profiles?.[user.id]?.display_name || getNick() || user.email;
+
+  const payload = {
+    user_id:user.id,
+    username: myNick,
+    address, contact, text,
+    start_at:startIso,
+    end_at:endIso,
+    lat: pickedLatLng ? pickedLatLng.lat : null,
+    lng: pickedLatLng ? pickedLatLng.lng : null
+  };
+
+  if(editingRVId){
+    const {error} = await sb.from("rendezvous").update(payload).eq("id",editingRVId).eq("user_id",user.id);
+    if(error) return alert(error.message);
+  }else{
+    const {error} = await sb.from("rendezvous").insert(payload);
+    if(error) return alert(error.message);
+  }
+
+  editingRVId=null;
+  $("rvPublishBtn").textContent="Pubblica";
+  $("rvCancelEditBtn").style.display="none";
+  $("rvAddress").value="";
+  $("rvContact").value="";
+  $("rvText").value="";
+  $("rvStart").value="";
+  $("rvEnd").value="";
+  pickedLatLng=null;
+
+  loadRV();
+}
+
+async function loadRV(){
+  $("rvList").innerHTML="";
+  const {data, error} = await sb.from("rendezvous").select("*").order("created_at",{ascending:false});
+  if(error) { console.warn(error.message); return; }
+
+  (data||[]).forEach(rv=>{
+    const d=document.createElement("div");
+    d.className="rvItem";
+
+    const created = rv.created_at ? new Date(rv.created_at).toLocaleString("it-IT") : "";
+    const startW  = rv.start_at ? new Date(rv.start_at).toLocaleString("it-IT") : "—";
+    const endW    = rv.end_at ? new Date(rv.end_at).toLocaleString("it-IT") : "—";
+
+    const top=document.createElement("div");
+    top.className="rvTop";
+    top.innerHTML=`
+      <div>
+        <div class="rvUser">${rv.username||"—"}</div>
+        <div class="rvMeta">${created}</div>
+        <div class="rvMeta"><b>Dal:</b> ${startW} &nbsp; <b>Al:</b> ${endW}</div>
+        <div class="rvMeta">${rv.address||""}</div>
+        <div class="rvMeta"><b>Contatto:</b> ${rv.contact||""}</div>
+      </div>
+    `;
+
+    const btns=document.createElement("div");
+    btns.className="rvBtns";
+
+    if(user && rv.user_id===user.id){
+      const bE=document.createElement("button");
+      bE.className="rvBtnEdit"; bE.textContent="Modifica";
+      bE.onclick=()=>editRV(rv);
+
+      const bD=document.createElement("button");
+      bD.className="rvBtnDel"; bD.textContent="Cancella";
+      bD.onclick=()=>deleteRV(rv.id);
+
+      btns.appendChild(bE);
+      btns.appendChild(bD);
+    }
+
+    top.appendChild(btns);
+
+    const txt=document.createElement("div");
+    txt.className="rvText";
+    txt.textContent=rv.text||"";
+
+    d.appendChild(top);
+    d.appendChild(txt);
+    $("rvList").appendChild(d);
+  });
+
+  if(!(data||[]).length){
+    const e=document.createElement("div");
+    e.style.color="#aaa";
+    e.style.padding="8px";
+    e.textContent="Nessun rendez-vous pubblicato. Sii il primo 😎";
+    $("rvList").appendChild(e);
+  }
+}
+
+function editRV(rv){
+  editingRVId=rv.id;
+  $("rvPublishBtn").textContent="Salva modifiche";
+  $("rvCancelEditBtn").style.display="inline-block";
+
+  $("rvAddress").value=rv.address||"";
+  $("rvContact").value=rv.contact||"";
+  $("rvText").value=rv.text||"";
+  $("rvStart").value=toLocalInputValue(rv.start_at);
+  $("rvEnd").value=toLocalInputValue(rv.end_at);
+
+  if(rv.lat && rv.lng) pickedLatLng={lat:rv.lat,lng:rv.lng}; else pickedLatLng=null;
+
+  $("rvPanel").classList.add("open");
+}
+
+async function deleteRV(id){
+  if(!confirm("Cancellare l'annuncio?")) return;
+  const {error} = await sb.from("rendezvous").delete().eq("id",id).eq("user_id",user.id);
+  if(error) return alert(error.message);
+  loadRV();
+}
+</script>
+
 </body>
 </html>
-
