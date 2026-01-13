@@ -18,7 +18,16 @@ body.admin-bar #app{top:32px}
 
 #map{width:100%;height:100%;background:#0b1020}
 
-#chatWrap{display:grid;grid-template-rows:auto 1fr;height:100%;background:#000}
+#chatWrap{
+  display:grid;
+  grid-template-rows:auto 1fr;
+  height:100%;
+  background:#000;
+  min-height:0;
+  overflow:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+
 #authBox{padding:14px;background:#05070d;border-bottom:1px solid #222}
 #title{text-align:center;font-size:22px;font-weight:900;color:#00e5ff;text-shadow:0 0 10px #00e5ff,0 0 20px #ff2bd6;margin-bottom:8px}
 
@@ -29,8 +38,32 @@ button{padding:8px 12px;border-radius:20px;border:none;font-weight:800;cursor:po
 .btnAlt{background:#141b33;color:#fff}
 #radarBtn{margin-top:6px;background:#1b233f;color:#fff}
 
-#chatBody{display:grid;grid-template-columns:260px 1fr;height:100%;background:#000}
-#chatList{background:#000;border-right:1px solid #222;overflow-y:auto}
+/* 🔔 bottone notifiche */
+#notifBtn{background:#1b233f;color:#fff}
+
+/* 🔄 bottone refresh */
+#refreshBtn{background:#1b233f;color:#fff}
+
+/* chatBody scrollabile per arrivare alla chat sotto */
+#chatBody{
+  display:grid;
+  grid-template-rows:240px auto;
+  height:100%;
+  background:#000;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+
+#chatList{
+  background:#000;
+  border-bottom:1px solid #222;
+  overflow-y:auto;
+  min-height:0;
+  -webkit-overflow-scrolling:touch;
+}
+
 .chatItem{display:flex;gap:10px;padding:10px;border-bottom:1px solid #1e1e1e;cursor:pointer}
 .chatItem.active{background:#0f1324}
 .chatText{flex:1;min-width:0}
@@ -43,26 +76,51 @@ button{padding:8px 12px;border-radius:20px;border:none;font-weight:800;cursor:po
 }
 .chatDel:hover{background:#ff3b3b;color:#000;box-shadow:0 0 12px rgba(255,59,59,.6)}
 
-#chat{display:flex;flex-direction:column;min-width:0;background:#000}
+#chat{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  background:#000;
+  border-top:1px solid #111;
+  height:420px;
+}
+
 #chatHeader{padding:12px;background:#000;border-bottom:1px solid #222;font-weight:800}
-#messages{flex:1;overflow-y:auto;padding:12px;background:#000}
+
+#messages{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  padding:12px;
+  background:#000;
+  -webkit-overflow-scrolling:touch;
+}
+
 .msg{max-width:70%;padding:10px;border-radius:12px;margin:6px 0;word-wrap:break-word}
 .me{margin-left:auto;background:#00e5ff;color:#000}
 .them{background:#1b233f}
 
-#composer{display:flex;gap:8px;padding:10px;border-top:1px solid #222;background:#000}
-#composer input{flex:1}
-#composer button{background:linear-gradient(135deg,#00e5ff,#ff2bd6)}
+/* composer */
+#composer{display:flex;flex-direction:column;gap:8px;padding:10px;border-top:1px solid #222;background:#000}
+#composerRow{display:flex;gap:8px}
+#composerRow input{flex:1}
+#composerRow button{background:linear-gradient(135deg,#00e5ff,#ff2bd6)}
 
-/* Bottone Rendez-vous (più grande) */
+/* ✅ Bottone Rendez-vous: IN ALTO SOPRA LA MAPPA */
 #rvToggle{
-  position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
-  z-index:9000;
-  padding:14px 28px;border-radius:26px;font-size:18px;
+  position:fixed;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9500;
+  padding:12px 18px;
+  border-radius:26px;
+  font-size:16px;
   background:linear-gradient(135deg,#00e5ff,#ff2bd6);
   font-weight:900;border:none;
   box-shadow:0 0 18px rgba(0,0,0,.35);
 }
+body.admin-bar #rvToggle{top:44px;} /* per non finire sotto la barra admin */
 
 /* Panel */
 #rvPanel{
@@ -109,7 +167,8 @@ button{padding:8px 12px;border-radius:20px;border:none;font-weight:800;cursor:po
 
 @media (max-width: 980px){
   #app{grid-template-columns:1fr;grid-template-rows:45% 55%}
-  #chatBody{grid-template-columns:220px 1fr}
+  #chatBody{grid-template-rows:220px auto;}
+  #chat{height:55vh;}
   #rvPanel{height:70%}
 }
 </style>
@@ -149,24 +208,36 @@ button{padding:8px 12px;border-radius:20px;border:none;font-weight:800;cursor:po
         Loggato come <b id="userEmail"></b>
         <button class="btnAlt" onclick="logout()" style="margin-left:8px">Logout</button>
         <button id="radarBtn" onclick="toggleRadar()">🟢 Radar ON</button>
+
+        <!-- 🔔 + 🔄 sulla stessa riga -->
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button id="notifBtn" onclick="toggleNotifications()">🔔 Notifiche OFF</button>
+          <button id="refreshBtn" onclick="refreshApp()">🔄 Refresh</button>
+        </div>
       </div>
     </div>
 
     <div id="chatBody">
       <div id="chatList"></div>
+
       <div id="chat">
         <div id="chatHeader">Seleziona una chat</div>
         <div id="messages"></div>
+
         <div id="composer">
-          <input id="msgInput" placeholder="Scrivi un messaggio" disabled>
-          <button id="sendBtn" onclick="sendMsg()" disabled>Invia</button>
+          <div id="composerRow">
+            <input id="msgInput" placeholder="Scrivi un messaggio" disabled>
+            <button id="sendBtn" onclick="sendMsg()" disabled>Invia</button>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
-<button id="rvToggle">📍 Rendez-vous</button>
+<!-- sopra la mappa -->
+<button id="rvToggle" type="button">📍 Rendez-vous</button>
 
 <div id="rvPanel">
   <div id="rvHeader">
@@ -214,6 +285,7 @@ const sb = supabase.createClient(
 
 let user=null, profiles={}, chats={}, activePeer=null;
 let map=null, myMarker=null, geoWatch=null;
+let otherMarkers=[]; // ✅ per rifare i marker con refresh
 
 const RADAR_KEY="cb_radar_started";
 const RADAR_DURATION=86400000;
@@ -224,6 +296,15 @@ let pickedLatLng=null;
 let editingRVId=null;
 
 const NICK_KEY="cb_nickname";
+
+/* 🔔 NOTIFICHE (solo quando browser/app è aperta) */
+const NOTIF_KEY="cb_notifications_enabled";
+let notifOn=false;
+let unreadCount=0;
+
+/* ✅ LISTA CHAT “PULITA”: SOLO CONTATTI CLICCATI O CHE TI HANNO SCRITTO */
+const PEERS_KEY="cb_chat_peers";
+let peersSet = new Set();
 
 /* ===== UI helpers ===== */
 const $ = (id)=>document.getElementById(id);
@@ -254,6 +335,38 @@ function setNick(n){
   localStorage.setItem(NICK_KEY, (n||"").trim());
 }
 
+/* ✅ peers helpers */
+function loadPeers(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(PEERS_KEY) || "[]");
+    peersSet = new Set((arr||[]).filter(Boolean));
+  }catch(e){
+    peersSet = new Set();
+  }
+}
+function savePeers(){
+  try{
+    localStorage.setItem(PEERS_KEY, JSON.stringify(Array.from(peersSet)));
+  }catch(e){}
+}
+function addPeer(pid){
+  if(!pid) return;
+  if(!peersSet.has(pid)){
+    peersSet.add(pid);
+    savePeers();
+  }
+  chats[pid]=chats[pid]||[];
+}
+function removePeer(pid){
+  if(!pid) return;
+  if(peersSet.has(pid)){
+    peersSet.delete(pid);
+    savePeers();
+  }
+  delete chats[pid];
+  if(activePeer===pid) activePeer=null;
+}
+
 /* ===== Nick UI (prima volta sì, poi no) ===== */
 function syncNickUI(){
   const nick = getNick();
@@ -268,7 +381,7 @@ function syncNickUI(){
     nickRow.style.display = "none";
     nickDispRow.style.display = "flex";
     $("nickDisplay").innerText = nick;
-    $("nickname").value = nick; // utile se premi Cambia e poi torni
+    $("nickname").value = nick;
   }
 }
 
@@ -278,16 +391,82 @@ $("changeNickBtn").onclick = ()=>{
   $("nickname").focus();
 };
 
+/* 🔔 Notifiche helpers */
+function restoreNotifState(){
+  notifOn = localStorage.getItem(NOTIF_KEY) === "1";
+  updateNotifBtn();
+}
+
+function updateNotifBtn(){
+  const b = $("notifBtn");
+  if(!b) return;
+  b.innerText = notifOn ? "🔔 Notifiche ON" : "🔔 Notifiche OFF";
+}
+
+async function toggleNotifications(){
+  if(!("Notification" in window)){
+    alert("Questo browser non supporta le notifiche.");
+    return;
+  }
+  if(!notifOn){
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted"){
+      notifOn=false;
+      localStorage.setItem(NOTIF_KEY,"0");
+      updateNotifBtn();
+      alert("Permesso notifiche negato. Se vuoi, riattivalo dalle impostazioni del browser.");
+      return;
+    }
+    notifOn=true;
+    localStorage.setItem(NOTIF_KEY,"1");
+    updateNotifBtn();
+    try{ new Notification("CamperBuddy", { body: "Notifiche attivate ✅" }); }catch(e){}
+  }else{
+    notifOn=false;
+    localStorage.setItem(NOTIF_KEY,"0");
+    updateNotifBtn();
+  }
+}
+
+/* Notifica solo se: notif attive + pagina non visibile O non sei in quella chat */
+function maybeNotifyMessage(m){
+  try{
+    if(!notifOn) return;
+    if(!("Notification" in window)) return;
+    if(Notification.permission !== "granted") return;
+
+    const senderName = safeName(m.sender);
+    const shouldNotify = document.hidden || activePeer !== m.sender;
+
+    if(!shouldNotify) return;
+
+    unreadCount++;
+    document.title = unreadCount > 0 ? `(${unreadCount}) CamperBuddy` : "CamperBuddy";
+
+    if(navigator.vibrate) navigator.vibrate([120,60,120]);
+
+    new Notification("Nuovo messaggio", {
+      body: `${senderName}: ${m.body || ""}`.slice(0,160)
+    });
+  }catch(e){}
+}
+
+/* azzera badge quando torni visibile */
+document.addEventListener("visibilitychange", ()=>{
+  if(!document.hidden){
+    unreadCount=0;
+    document.title="CamperBuddy";
+  }
+});
+
 /* ===== AUTH ===== */
 async function login(){
   const email = ($("email").value || "").trim();
   const password = $("password").value;
 
-  // ✅ se nick già salvato, non serve reinserirlo
   let nickname = ($("nickname").value || "").trim();
   if(!nickname) nickname = getNick();
 
-  // Se non c'è ancora (prima volta), lo richiediamo
   if(!nickname) return alert("Inserisci il Nick name (solo la prima volta).");
   if(!email || !password) return alert("Inserisci email e password.");
 
@@ -322,8 +501,8 @@ async function logout(){
 
 /* ===== START ===== */
 sb.auth.getSession().then(async({data})=>{
-  // All'avvio: aggiorna UI nick (se già c'è, non lo chiede più)
   syncNickUI();
+  loadPeers();
 
   if(data.session){
     user = data.session.user;
@@ -342,10 +521,8 @@ sb.auth.getSession().then(async({data})=>{
 async function ensureMyNickname(){
   if(!user) return;
 
-  // 1) Se ho nick in localStorage → lo scrivo/aggiorno su profiles
   let nick = getNick();
 
-  // 2) Se NON ho nick in localStorage → provo a leggerlo da profiles e salvarlo (così da ora in poi non lo chiede)
   if(!nick){
     const { data, error } = await sb.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
     if(!error && data?.display_name){
@@ -354,7 +531,6 @@ async function ensureMyNickname(){
       return;
     }
 
-    // 3) Se anche su profiles non c'è → lo chiedo UNA VOLTA (prompt) e lo salvo
     const suggested = (user.email || "").split("@")[0] || "Camperista";
     const chosen = (prompt("Scegli un Nick name (solo la prima volta):", suggested) || "").trim() || suggested;
     setNick(chosen);
@@ -362,7 +538,6 @@ async function ensureMyNickname(){
     syncNickUI();
   }
 
-  // upsert sul tuo profilo
   const { error: upErr } = await sb.from("profiles").upsert(
     { user_id: user.id, display_name: nick },
     { onConflict: "user_id" }
@@ -375,9 +550,13 @@ async function start(){
   await loadProfiles();
   initMap();
   restoreRadarState();
+  restoreNotifState();
   startPolling();
   hookRVUI();
   await loadRV();
+
+  renderChatList();
+  renderMessages();
 }
 
 /* ===== PROFILES ===== */
@@ -387,7 +566,6 @@ async function loadProfiles(){
   profiles={};
   (data||[]).forEach(p=>profiles[p.user_id]=p);
 
-  // Se sono loggato e non ho nick in localStorage ma ce l'ho nel profilo → salvalo
   if(user && !getNick() && profiles[user.id]?.display_name){
     setNick(profiles[user.id].display_name);
     syncNickUI();
@@ -400,17 +578,40 @@ function initMapEmpty(){
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
   setTimeout(()=>map.invalidateSize(true),400);
 }
+
+function clearOtherMarkers(){
+  try{
+    otherMarkers.forEach(m=>{ try{ map.removeLayer(m); }catch(e){} });
+  }catch(e){}
+  otherMarkers=[];
+}
+
+function rebuildOtherMarkers(){
+  if(!map || !user) return;
+  clearOtherMarkers();
+
+  Object.values(profiles).forEach(u=>{
+    if(!u?.lat || !u?.lng) return;
+    if(u.user_id===user.id) return;
+
+    const m=L.marker([u.lat,u.lng]).addTo(map).bindPopup(u.display_name||u.username||u.user_id);
+
+    // ✅ CLICK MARKER = aggiungi contatto e apri chat
+    m.on("click",()=>{
+      addPeer(u.user_id);
+      openChat(u.user_id);
+    });
+
+    otherMarkers.push(m);
+  });
+}
+
 function initMap(){
   map=L.map("map").setView([45.4,11],6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
   setTimeout(()=>map.invalidateSize(true),400);
 
-  Object.values(profiles).forEach(u=>{
-    if(!u?.lat || !u?.lng) return;
-    if(u.user_id===user.id) return;
-    const m=L.marker([u.lat,u.lng]).addTo(map).bindPopup(u.display_name||u.username||u.user_id);
-    m.on("click",()=>openChat(u.user_id));
-  });
+  rebuildOtherMarkers();
 
   map.on("click", async (e)=>{
     if(!pickMode) return;
@@ -437,19 +638,35 @@ function restoreRadarState(){
   }
 }
 
-function toggleRadar(){
+/* ✅ MODIFICA: quando Radar OFF -> lat/lng NULL su Supabase (sparisci agli altri) */
+async function toggleRadar(){
   if(!user) return alert("Devi essere loggato.");
+
   if(radarOn){
+    // OFF
     radarOn=false;
     localStorage.removeItem(RADAR_KEY);
+
     if(myMarker) map.removeLayer(myMarker);
+    myMarker=null;
+
     if(geoWatch) navigator.geolocation.clearWatch(geoWatch);
     geoWatch=null;
+
+    // ✅ sparisci anche nel DB
+    try{
+      const { error } = await sb.from("profiles").update({ lat: null, lng: null }).eq("user_id", user.id);
+      if(error) console.warn("profiles clear lat/lng:", error.message);
+    }catch(e){
+      console.warn("profiles clear lat/lng error:", e);
+    }
   }else{
+    // ON
     radarOn=true;
     localStorage.setItem(RADAR_KEY, String(Date.now()));
     startGeo();
   }
+
   $("radarBtn").innerText = radarOn ? "🟢 Radar ON" : "🔴 Radar OFF";
 }
 
@@ -469,33 +686,71 @@ function startGeo(){
 /* ===== CHAT ===== */
 function openChat(pid){
   activePeer=pid;
-  chats[pid]=chats[pid]||[];
+  addPeer(pid);
+
   renderChatList();
   renderMessages();
+
+  unreadCount=0;
+  document.title="CamperBuddy";
 }
 
-function deleteChat(pid){
+/* ✅ FIX: il cestino cancella anche i messaggi su Supabase */
+async function deleteChat(pid){
   if(!confirm("Cancellare chat?")) return;
-  delete chats[pid];
-  if(activePeer===pid) activePeer=null;
+
+  try{
+    const del1 = await sb.from("messages").delete().match({ sender: user.id, receiver: pid });
+    const del2 = await sb.from("messages").delete().match({ sender: pid, receiver: user.id });
+
+    if(del1?.error) console.warn("delete out:", del1.error.message);
+    if(del2?.error) console.warn("delete in:", del2.error.message);
+  }catch(e){
+    console.warn("deleteChat error:", e);
+  }
+
+  removePeer(pid);
+
   renderChatList();
   renderMessages();
 }
 
 function renderChatList(){
   $("chatList").innerHTML="";
-  Object.keys(chats).forEach(pid=>{
+
+  const peers = Array.from(peersSet);
+
+  peers.sort((a,b)=>{
+    const la = chats[a]?.[chats[a].length-1]?.created_at || "";
+    const lb = chats[b]?.[chats[b].length-1]?.created_at || "";
+    if(la===lb) return safeName(a).localeCompare(safeName(b));
+    return la<lb ? 1 : -1;
+  });
+
+  peers.forEach(pid=>{
+    chats[pid]=chats[pid]||[];
     const c=chats[pid];
+
     const el=document.createElement("div");
     el.className="chatItem"+(pid===activePeer?" active":"");
     el.onclick=()=>openChat(pid);
     el.innerHTML=`<div class="chatText"><div class="chatName">${safeName(pid)}</div><div class="chatLast">${c[c.length-1]?.body||""}</div></div>`;
+
     const d=document.createElement("div");
     d.className="chatDel"; d.innerText="🗑";
-    d.onclick=e=>{e.stopPropagation();deleteChat(pid)};
+    d.onclick=async (e)=>{ e.stopPropagation(); await deleteChat(pid); };
+
     el.appendChild(d);
     $("chatList").appendChild(el);
   });
+
+  if(!peers.length){
+    const e=document.createElement("div");
+    e.style.color="#aaa";
+    e.style.padding="10px";
+    e.textContent="Nessuna chat ancora. Clicca un camper sulla mappa per iniziare 😎";
+    $("chatList").appendChild(e);
+  }
 }
 
 function renderMessages(){
@@ -522,6 +777,9 @@ function renderMessages(){
 async function sendMsg(){
   const t=$("msgInput").value.trim();
   if(!t || !activePeer) return;
+
+  addPeer(activePeer);
+
   const m={sender:user.id,receiver:activePeer,body:t,created_at:new Date().toISOString()};
   chats[activePeer].push(m);
   renderMessages(); renderChatList();
@@ -535,13 +793,68 @@ function startPolling(){
     const {data} = await sb.from("messages").select("*").eq("receiver",user.id);
     if(!data) return;
     data.forEach(m=>{
+      addPeer(m.sender);
+
       chats[m.sender]=chats[m.sender]||[];
       if(chats[m.sender].some(x=>x.created_at===m.created_at)) return;
       chats[m.sender].push(m);
+
+      maybeNotifyMessage(m);
+
       renderChatList();
       if(activePeer===m.sender) renderMessages();
     });
   },3000);
+}
+
+/* ✅ REFRESH “SOFT” */
+async function refreshApp(){
+  try{
+    const btn = $("refreshBtn");
+    if(btn){ btn.disabled=true; btn.textContent="⏳"; }
+
+    await loadProfiles();
+    if(map && user){
+      rebuildOtherMarkers();
+    }
+
+    if(user){
+      const { data, error } = await sb
+        .from("messages")
+        .select("*")
+        .or(`receiver.eq.${user.id},sender.eq.${user.id}`)
+        .order("created_at",{ascending:true});
+
+      if(!error && data){
+        const newChats = {};
+        data.forEach(m=>{
+          const other = (m.sender===user.id) ? m.receiver : m.sender;
+
+          if(m.receiver===user.id) addPeer(other);
+
+          if(!peersSet.has(other)) return;
+
+          newChats[other] = newChats[other] || [];
+          if(newChats[other].some(x=>x.created_at===m.created_at)) return;
+          newChats[other].push(m);
+        });
+        chats = newChats;
+      }
+    }
+
+    await loadRV();
+
+    renderChatList();
+    renderMessages();
+  }catch(e){
+    console.warn("refreshApp:", e);
+  }finally{
+    const btn = $("refreshBtn");
+    if(btn){
+      btn.disabled=false;
+      btn.textContent="🔄 Refresh";
+    }
+  }
 }
 
 /* ===== RENDEZ-VOUS UI + DB ===== */
@@ -584,7 +897,6 @@ async function publishOrUpdateRV(){
   const endIso = new Date(endLocal).toISOString();
   if(new Date(endIso) <= new Date(startIso)) return alert("La data AL deve essere dopo la data DAL.");
 
-  // username = nickname (display_name). fallback: localStorage nick. ultima spiaggia: email.
   const myNick = profiles?.[user.id]?.display_name || getNick() || user.email;
 
   const payload = {
